@@ -1,0 +1,387 @@
+openapi: 3.0.3
+info:
+  title: Address Service API
+  description: RESTful API for managing address resources.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8081
+    description: Local development server
+
+tags:
+  - name: Addresses
+    description: Operations for managing addresses
+
+paths:
+  /addresses:
+    get:
+      tags:
+        - Addresses
+      summary: List all addresses
+      description: Retrieves a paginated list of all addresses.
+      operationId: listAddresses
+      parameters:
+        - name: page
+          in: query
+          description: Page number (zero-based)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Successfully retrieved list of addresses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address'
+              example:
+                - id: "addr-001"
+                  nameOrNumber: "42"
+                  street: "High Street"
+                  line1: "Flat 3"
+                  line2: null
+                  town: "Bristol"
+                  postCodeOrZip: "BS1 4DJ"
+                  country: "United Kingdom"
+                - id: "addr-002"
+                  nameOrNumber: "100"
+                  street: "Main Street"
+                  line1: "Suite 200"
+                  line2: "Building C"
+                  town: "Springfield"
+                  postCodeOrZip: "62701"
+                  country: "United States"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Addresses
+      summary: Create a new address
+      description: Creates a new address resource.
+      operationId: createAddress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressCreate'
+            example:
+              nameOrNumber: "7"
+              street: "Oak Avenue"
+              line1: null
+              line2: null
+              town: "Manchester"
+              postCodeOrZip: "M1 1AA"
+              country: "United Kingdom"
+      responses:
+        '201':
+          description: Address created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+              example:
+                id: "addr-003"
+                nameOrNumber: "7"
+                street: "Oak Avenue"
+                line1: null
+                line2: null
+                town: "Manchester"
+                postCodeOrZip: "M1 1AA"
+                country: "United Kingdom"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /addresses/{addressId}:
+    parameters:
+      - name: addressId
+        in: path
+        required: true
+        description: Unique identifier of the address
+        schema:
+          type: string
+          pattern: '^[a-zA-Z0-9\-]+$'
+        example: "addr-001"
+
+    get:
+      tags:
+        - Addresses
+      summary: Get an address by ID
+      description: Retrieves a single address by its unique identifier.
+      operationId: getAddressById
+      responses:
+        '200':
+          description: Successfully retrieved the address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+              example:
+                id: "addr-001"
+                nameOrNumber: "42"
+                street: "High Street"
+                line1: "Flat 3"
+                line2: null
+                town: "Bristol"
+                postCodeOrZip: "BS1 4DJ"
+                country: "United Kingdom"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Addresses
+      summary: Update an address
+      description: Replaces an existing address resource with the provided data.
+      operationId: updateAddress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressCreate'
+            example:
+              nameOrNumber: "42a"
+              street: "High Street"
+              line1: "Ground Floor"
+              line2: null
+              town: "Bristol"
+              postCodeOrZip: "BS1 4DJ"
+              country: "United Kingdom"
+      responses:
+        '200':
+          description: Address updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+              example:
+                id: "addr-001"
+                nameOrNumber: "42a"
+                street: "High Street"
+                line1: "Ground Floor"
+                line2: null
+                town: "Bristol"
+                postCodeOrZip: "BS1 4DJ"
+                country: "United Kingdom"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Addresses
+      summary: Delete an address
+      description: Deletes an address by its unique identifier.
+      operationId: deleteAddress
+      responses:
+        '204':
+          description: Address deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Address:
+      type: object
+      description: A postal address resource
+      required:
+        - id
+        - nameOrNumber
+        - street
+        - town
+        - postCodeOrZip
+        - country
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the address
+          pattern: '^[a-zA-Z0-9\-]+$'
+          example: "addr-001"
+        nameOrNumber:
+          type: string
+          description: House name or number
+          example: "42"
+        street:
+          type: string
+          description: Street name
+          example: "High Street"
+        line1:
+          type: string
+          nullable: true
+          description: Additional address line 1
+          example: "Flat 3"
+        line2:
+          type: string
+          nullable: true
+          description: Additional address line 2
+          example: null
+        town:
+          type: string
+          description: Town or city
+          example: "Bristol"
+        postCodeOrZip:
+          type: string
+          description: Postal code or ZIP code
+          example: "BS1 4DJ"
+        country:
+          type: string
+          description: Country name
+          example: "United Kingdom"
+
+    AddressCreate:
+      type: object
+      description: Payload for creating or updating an address
+      required:
+        - nameOrNumber
+        - street
+        - town
+        - postCodeOrZip
+        - country
+      properties:
+        nameOrNumber:
+          type: string
+          description: House name or number
+          example: "42"
+        street:
+          type: string
+          description: Street name
+          example: "High Street"
+        line1:
+          type: string
+          nullable: true
+          description: Additional address line 1
+          example: "Flat 3"
+        line2:
+          type: string
+          nullable: true
+          description: Additional address line 2
+          example: null
+        town:
+          type: string
+          description: Town or city
+          example: "Bristol"
+        postCodeOrZip:
+          type: string
+          description: Postal code or ZIP code
+          example: "BS1 4DJ"
+        country:
+          type: string
+          description: Country name
+          example: "United Kingdom"
+
+    Error:
+      type: object
+      description: Standard error response
+      required:
+        - status
+        - error
+        - message
+        - timestamp
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        error:
+          type: string
+          description: Error category
+          example: "Bad Request"
+        message:
+          type: string
+          description: Human-readable error description
+          example: "Validation failed for field 'postCodeOrZip'"
+        timestamp:
+          type: string
+          format: date-time
+          description: Time the error occurred
+          example: "2026-07-01T10:30:00Z"
+        path:
+          type: string
+          description: Request path that caused the error
+          example: "/addresses"
+
+  responses:
+    BadRequest:
+      description: The request was malformed or contained invalid data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 400
+            error: "Bad Request"
+            message: "Validation failed: 'postCodeOrZip' must not be blank"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/addresses"
+
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 404
+            error: "Not Found"
+            message: "Address with id 'addr-999' not found"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/addresses/addr-999"
+
+    Conflict:
+      description: The request conflicts with the current state of the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 409
+            error: "Conflict"
+            message: "An address with these details already exists"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/addresses"
+
+    InternalServerError:
+      description: An unexpected error occurred on the server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 500
+            error: "Internal Server Error"
+            message: "An unexpected error occurred. Please try again later."
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/addresses"

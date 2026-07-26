@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: Item Service API
+  description: RESTful API for managing item/product resources.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8082
+    description: Local development server
+
+tags:
+  - name: Items
+    description: Operations for managing items
+
+paths:
+  /items:
+    get:
+      tags:
+        - Items
+      summary: List all items
+      description: Retrieves a paginated list of all items.
+      operationId: listItems
+      parameters:
+        - name: page
+          in: query
+          description: Page number (zero-based)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: inStock
+          in: query
+          description: Filter by stock availability
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successfully retrieved list of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+              example:
+                - id: "item-001"
+                  name: "Wireless Keyboard"
+                  description: "Compact wireless keyboard with backlit keys"
+                  options: "Black, White, Silver"
+                  unitPrice: 49.99
+                  inStock: true
+                - id: "item-002"
+                  name: "USB-C Hub"
+                  description: "7-port USB-C hub with HDMI and ethernet"
+                  options: "Space Grey, Silver"
+                  unitPrice: 79.95
+                  inStock: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Items
+      summary: Create a new item
+      description: Creates a new item resource.
+      operationId: createItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+            example:
+              name: "Mechanical Keyboard"
+              description: "Full-size mechanical keyboard with Cherry MX switches"
+              options: "Blue Switch, Red Switch, Brown Switch"
+              unitPrice: 129.99
+              inStock: true
+      responses:
+        '201':
+          description: Item created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+              example:
+                id: "item-003"
+                name: "Mechanical Keyboard"
+                description: "Full-size mechanical keyboard with Cherry MX switches"
+                options: "Blue Switch, Red Switch, Brown Switch"
+                unitPrice: 129.99
+                inStock: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /items/{itemId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        description: Unique identifier of the item
+        schema:
+          type: string
+          pattern: '^[a-zA-Z0-9\-]+$'
+        example: "item-001"
+
+    get:
+      tags:
+        - Items
+      summary: Get an item by ID
+      description: Retrieves a single item by its unique identifier.
+      operationId: getItemById
+      responses:
+        '200':
+          description: Successfully retrieved the item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+              example:
+                id: "item-001"
+                name: "Wireless Keyboard"
+                description: "Compact wireless keyboard with backlit keys"
+                options: "Black, White, Silver"
+                unitPrice: 49.99
+                inStock: true
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Items
+      summary: Update an item
+      description: Replaces an existing item resource with the provided data.
+      operationId: updateItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+            example:
+              name: "Wireless Keyboard"
+              description: "Compact wireless keyboard with backlit keys and number pad"
+              options: "Black, White, Silver, Rose Gold"
+              unitPrice: 54.99
+              inStock: true
+      responses:
+        '200':
+          description: Item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+              example:
+                id: "item-001"
+                name: "Wireless Keyboard"
+                description: "Compact wireless keyboard with backlit keys and number pad"
+                options: "Black, White, Silver, Rose Gold"
+                unitPrice: 54.99
+                inStock: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Items
+      summary: Delete an item
+      description: Deletes an item by its unique identifier.
+      operationId: deleteItem
+      responses:
+        '204':
+          description: Item deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Item:
+      type: object
+      description: An item/product resource
+      required:
+        - id
+        - name
+        - description
+        - options
+        - unitPrice
+        - inStock
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the item
+          pattern: '^[a-zA-Z0-9\-]+$'
+          example: "item-001"
+        name:
+          type: string
+          description: Item name
+          example: "Wireless Keyboard"
+        description:
+          type: string
+          description: Detailed description of the item
+          example: "Compact wireless keyboard with backlit keys"
+        options:
+          type: string
+          description: Available options or variants
+          example: "Black, White, Silver"
+        unitPrice:
+          type: number
+          format: double
+          description: Price per unit
+          minimum: 0
+          example: 49.99
+        inStock:
+          type: boolean
+          description: Whether the item is currently in stock
+          example: true
+
+    ItemCreate:
+      type: object
+      description: Payload for creating or updating an item
+      required:
+        - name
+        - description
+        - options
+        - unitPrice
+        - inStock
+      properties:
+        name:
+          type: string
+          description: Item name
+          example: "Wireless Keyboard"
+        description:
+          type: string
+          description: Detailed description of the item
+          example: "Compact wireless keyboard with backlit keys"
+        options:
+          type: string
+          description: Available options or variants
+          example: "Black, White, Silver"
+        unitPrice:
+          type: number
+          format: double
+          description: Price per unit
+          minimum: 0
+          example: 49.99
+        inStock:
+          type: boolean
+          description: Whether the item is currently in stock
+          example: true
+
+    Error:
+      type: object
+      description: Standard error response
+      required:
+        - status
+        - error
+        - message
+        - timestamp
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        error:
+          type: string
+          description: Error category
+          example: "Bad Request"
+        message:
+          type: string
+          description: Human-readable error description
+          example: "Validation failed for field 'unitPrice'"
+        timestamp:
+          type: string
+          format: date-time
+          description: Time the error occurred
+          example: "2026-07-01T10:30:00Z"
+        path:
+          type: string
+          description: Request path that caused the error
+          example: "/items"
+
+  responses:
+    BadRequest:
+      description: The request was malformed or contained invalid data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 400
+            error: "Bad Request"
+            message: "Validation failed: 'unitPrice' must be greater than or equal to 0"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/items"
+
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 404
+            error: "Not Found"
+            message: "Item with id 'item-999' not found"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/items/item-999"
+
+    Conflict:
+      description: The request conflicts with the current state of the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 409
+            error: "Conflict"
+            message: "An item with name 'Wireless Keyboard' already exists"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/items"
+
+    InternalServerError:
+      description: An unexpected error occurred on the server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 500
+            error: "Internal Server Error"
+            message: "An unexpected error occurred. Please try again later."
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/items"

@@ -1,0 +1,471 @@
+openapi: 3.0.3
+info:
+  title: Customer Service API
+  description: RESTful API for managing customer resources.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Customers
+    description: Operations for managing customers
+
+paths:
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: List all customers
+      description: Retrieves a paginated list of all customers.
+      operationId: listCustomers
+      parameters:
+        - name: page
+          in: query
+          description: Page number (zero-based)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: size
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Successfully retrieved list of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+              example:
+                - id: "cust-001"
+                  firstName: "Jane"
+                  lastName: "Smith"
+                  title: "Ms"
+                  phone: "+44 7700 900123"
+                  email: "jane.smith@example.com"
+                  address:
+                    id: "addr-001"
+                    nameOrNumber: "42"
+                    street: "High Street"
+                    line1: "Flat 3"
+                    line2: null
+                    town: "Bristol"
+                    postCodeOrZip: "BS1 4DJ"
+                    country: "United Kingdom"
+                - id: "cust-002"
+                  firstName: "John"
+                  lastName: "Doe"
+                  title: "Mr"
+                  phone: "+1 555-0199"
+                  email: "john.doe@example.com"
+                  address:
+                    id: "addr-002"
+                    nameOrNumber: "100"
+                    street: "Main Street"
+                    line1: "Suite 200"
+                    line2: null
+                    town: "Springfield"
+                    postCodeOrZip: "62701"
+                    country: "United States"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Customers
+      summary: Create a new customer
+      description: Creates a new customer resource.
+      operationId: createCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreate'
+            example:
+              firstName: "Jane"
+              lastName: "Smith"
+              title: "Ms"
+              phone: "+44 7700 900123"
+              email: "jane.smith@example.com"
+              address:
+                id: "addr-001"
+                nameOrNumber: "42"
+                street: "High Street"
+                line1: "Flat 3"
+                line2: null
+                town: "Bristol"
+                postCodeOrZip: "BS1 4DJ"
+                country: "United Kingdom"
+      responses:
+        '201':
+          description: Customer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              example:
+                id: "cust-003"
+                firstName: "Jane"
+                lastName: "Smith"
+                title: "Ms"
+                phone: "+44 7700 900123"
+                email: "jane.smith@example.com"
+                address:
+                  id: "addr-001"
+                  nameOrNumber: "42"
+                  street: "High Street"
+                  line1: "Flat 3"
+                  line2: null
+                  town: "Bristol"
+                  postCodeOrZip: "BS1 4DJ"
+                  country: "United Kingdom"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /customers/{customerId}:
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        description: Unique identifier of the customer
+        schema:
+          type: string
+          pattern: '^[a-zA-Z0-9\-]+$'
+        example: "cust-001"
+
+    get:
+      tags:
+        - Customers
+      summary: Get a customer by ID
+      description: Retrieves a single customer by their unique identifier.
+      operationId: getCustomerById
+      responses:
+        '200':
+          description: Successfully retrieved the customer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              example:
+                id: "cust-001"
+                firstName: "Jane"
+                lastName: "Smith"
+                title: "Ms"
+                phone: "+44 7700 900123"
+                email: "jane.smith@example.com"
+                address:
+                  id: "addr-001"
+                  nameOrNumber: "42"
+                  street: "High Street"
+                  line1: "Flat 3"
+                  line2: null
+                  town: "Bristol"
+                  postCodeOrZip: "BS1 4DJ"
+                  country: "United Kingdom"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Customers
+      summary: Update a customer
+      description: Replaces an existing customer resource with the provided data.
+      operationId: updateCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreate'
+            example:
+              firstName: "Jane"
+              lastName: "Smith-Jones"
+              title: "Mrs"
+              phone: "+44 7700 900456"
+              email: "jane.smithjones@example.com"
+              address:
+                id: "addr-001"
+                nameOrNumber: "42"
+                street: "High Street"
+                line1: "Flat 3"
+                line2: null
+                town: "Bristol"
+                postCodeOrZip: "BS1 4DJ"
+                country: "United Kingdom"
+      responses:
+        '200':
+          description: Customer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              example:
+                id: "cust-001"
+                firstName: "Jane"
+                lastName: "Smith-Jones"
+                title: "Mrs"
+                phone: "+44 7700 900456"
+                email: "jane.smithjones@example.com"
+                address:
+                  id: "addr-001"
+                  nameOrNumber: "42"
+                  street: "High Street"
+                  line1: "Flat 3"
+                  line2: null
+                  town: "Bristol"
+                  postCodeOrZip: "BS1 4DJ"
+                  country: "United Kingdom"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Customers
+      summary: Delete a customer
+      description: Deletes a customer by their unique identifier.
+      operationId: deleteCustomer
+      responses:
+        '204':
+          description: Customer deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Customer:
+      type: object
+      description: A customer resource
+      required:
+        - id
+        - firstName
+        - lastName
+        - title
+        - phone
+        - email
+        - address
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the customer
+          pattern: '^[a-zA-Z0-9\-]+$'
+          example: "cust-001"
+        firstName:
+          type: string
+          description: Customer's first name
+          example: "Jane"
+        lastName:
+          type: string
+          description: Customer's last name
+          example: "Smith"
+        title:
+          type: string
+          description: Customer's title (e.g. Mr, Ms, Dr)
+          example: "Ms"
+        phone:
+          type: string
+          description: Customer's phone number
+          example: "+44 7700 900123"
+        email:
+          type: string
+          format: email
+          description: Customer's email address
+          example: "jane.smith@example.com"
+        address:
+          $ref: '#/components/schemas/Address'
+
+    CustomerCreate:
+      type: object
+      description: Payload for creating or updating a customer
+      required:
+        - firstName
+        - lastName
+        - title
+        - phone
+        - email
+        - address
+      properties:
+        firstName:
+          type: string
+          description: Customer's first name
+          example: "Jane"
+        lastName:
+          type: string
+          description: Customer's last name
+          example: "Smith"
+        title:
+          type: string
+          description: Customer's title (e.g. Mr, Ms, Dr)
+          example: "Ms"
+        phone:
+          type: string
+          description: Customer's phone number
+          example: "+44 7700 900123"
+        email:
+          type: string
+          format: email
+          description: Customer's email address
+          example: "jane.smith@example.com"
+        address:
+          $ref: '#/components/schemas/Address'
+
+    Address:
+      type: object
+      description: A postal address
+      required:
+        - id
+        - nameOrNumber
+        - street
+        - town
+        - postCodeOrZip
+        - country
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the address
+          pattern: '^[a-zA-Z0-9\-]+$'
+          example: "addr-001"
+        nameOrNumber:
+          type: string
+          description: House name or number
+          example: "42"
+        street:
+          type: string
+          description: Street name
+          example: "High Street"
+        line1:
+          type: string
+          nullable: true
+          description: Additional address line 1
+          example: "Flat 3"
+        line2:
+          type: string
+          nullable: true
+          description: Additional address line 2
+          example: null
+        town:
+          type: string
+          description: Town or city
+          example: "Bristol"
+        postCodeOrZip:
+          type: string
+          description: Postal code or ZIP code
+          example: "BS1 4DJ"
+        country:
+          type: string
+          description: Country name
+          example: "United Kingdom"
+
+    Error:
+      type: object
+      description: Standard error response
+      required:
+        - status
+        - error
+        - message
+        - timestamp
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        error:
+          type: string
+          description: Error category
+          example: "Bad Request"
+        message:
+          type: string
+          description: Human-readable error description
+          example: "Validation failed for field 'email'"
+        timestamp:
+          type: string
+          format: date-time
+          description: Time the error occurred
+          example: "2026-07-01T10:30:00Z"
+        path:
+          type: string
+          description: Request path that caused the error
+          example: "/customers"
+
+  responses:
+    BadRequest:
+      description: The request was malformed or contained invalid data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 400
+            error: "Bad Request"
+            message: "Validation failed: 'email' must be a valid email address"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/customers"
+
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 404
+            error: "Not Found"
+            message: "Customer with id 'cust-999' not found"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/customers/cust-999"
+
+    Conflict:
+      description: The request conflicts with the current state of the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 409
+            error: "Conflict"
+            message: "A customer with email 'jane.smith@example.com' already exists"
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/customers"
+
+    InternalServerError:
+      description: An unexpected error occurred on the server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            status: 500
+            error: "Internal Server Error"
+            message: "An unexpected error occurred. Please try again later."
+            timestamp: "2026-07-01T10:30:00Z"
+            path: "/customers"
