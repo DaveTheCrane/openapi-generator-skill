@@ -3,7 +3,7 @@ inclusion: always
 ---
 # Build and Code Generation
 
-Part of this project's code is generated at build time (for example by Lombok and by code generators wired into the Maven build). Follow these rules whenever you build, test, or write code that touches generated types.
+These rules apply to any Maven project where part of the source is generated at build time — for example by annotation processors such as Lombok, or by code generators wired into the build lifecycle. Follow them whenever you build, test, or write code that touches generated types.
 
 ## Canonical build and test commands
 
@@ -13,7 +13,7 @@ Part of this project's code is generated at build time (for example by Lombok an
 
 ## Code generation is part of the build
 
-- Code generators run in the `generate-sources` phase on every build. Regenerating this code is expected to take time — slowness is NOT a reason to work around Maven.
+- Code generators run in the `generate-sources` phase on every build. Regeneration is expected to take time — slowness is NOT a reason to work around Maven.
 - Never hand-edit generated sources. They are regenerated on every build and are not committed to git.
 
 ## Where generated code lives
@@ -31,4 +31,4 @@ A design document's list of dependencies and its simplified model shapes are a s
 
 ## Generator-specific guidance
 
-Details specific to a particular code generator (exact package layout, model type quirks, error-handling conventions) belong in the relevant skill rather than here. For OpenAPI-generated services, see the `springboot-openapi-generator` skill.
+Details specific to a particular code generator (exact package layout, model type quirks, error-handling conventions) belong in the relevant skill rather than here. For OpenAPI-generated services, see the `springboot-openapi-generator` skill, if that's installed.

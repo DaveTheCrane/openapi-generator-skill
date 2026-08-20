@@ -158,14 +158,25 @@ public class PetsApiDelegateImpl implements PetsApiDelegate {
 
 ### 5. Build and Verify
 
-Run:
+Always build and test through Maven:
 
 ```bash
-mvn clean compile
+mvn clean test
 ```
 
 This triggers code generation. The generated sources are placed in
 `target/generated-sources/openapi/` and are automatically added to the compile path.
+
+Build rules:
+
+- **Always use Maven.** Do NOT invoke `javac` or `java` directly, and do NOT compile
+  against `target/classes` by hand. Manual compilation leaves stale `.class` files that
+  cause conflicting bean definitions and other spurious failures on the next Maven run.
+- **Code generation runs on every build**, in the `generate-sources` phase. Regenerating
+  is expected to take time — slowness is NOT a reason to work around Maven.
+- **Never hand-edit generated sources.** They are overwritten on every build.
+- **If a failure looks like stale state** (duplicate or conflicting beans, classes that
+  "shouldn't" be there), run `mvn clean` first, then retry.
 
 ## Working with Generated Types
 
@@ -253,10 +264,11 @@ the delegate and the error mapping testable without a Spring context and without
 - Read the actual generated `.java` files before coding against them (see "Working with
   Generated Types").
 - Generated code lives in `target/` and should NOT be committed to version control.
-  Add `target/` to `.gitignore`.
+  Add `target/` to `.gitignore`. Never hand-edit generated sources — they are
+  regenerated on every build.
+- Build and test with `mvn clean test`; never compile by hand with `javac` (see
+  "Build and Verify").
 - If the user provides an OpenAPI spec inline or as a file, place it in the correct
   `spec/` subfolder before configuring the plugin.
 - When adding multiple client executions, each must have a unique `<id>` and distinct
   package names to avoid class collisions.
-
-When building and compiling code, see also the instructions [here](./assets/build-and-codegen.md).
