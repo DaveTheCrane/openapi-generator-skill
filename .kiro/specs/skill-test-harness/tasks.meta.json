@@ -1,0 +1,266 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Set up project structure, dependencies, and core data models": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606642
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898609803
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898693136
+      }
+    ],
+    "2.1 Implement `test/harness/config.py` with `load_config() -> HarnessConfig`": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606702
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898696444
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899101729
+      }
+    ],
+    "3.1 Implement `test/harness/skill_loader.py` with `load_skill(path: str) -> SkillDefinition`": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606743
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898698973
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899104893
+      }
+    ],
+    "4.1 Implement `test/harness/fixture_loader.py` with `load_fixture(path: str) -> list[PromptCase]`": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606784
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898701749
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899107977
+      }
+    ],
+    "5. Checkpoint — Ensure all tests pass": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606820
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899119602
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899166397
+      }
+    ],
+    "6.1 Implement `test/harness/activation_checker.py` with `check_activation(...) -> CheckResult`": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606864
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899169211
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899350493
+      }
+    ],
+    "7.1 Implement `test/harness/runner.py` with `run(cases, skill, config) -> RunSummary`": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606903
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899654908
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899746879
+      }
+    ],
+    "8.1 Implement `test/harness/reporter.py` with `report(summary: RunSummary, verbose: bool) -> int`": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606941
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899749904
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899838449
+      }
+    ],
+    "9.1 Implement `test/test_skill.py` as the CLI entry point": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898606971
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899841874
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788900870337
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788900885701
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788900988763
+      }
+    ],
+    "9.2 Create a sample fixture file for the `springboot-openapi-generator` skill": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898607002
+      },
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899844806
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788900870397
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788900993658
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788901037656
+      }
+    ],
+    "10. Final checkpoint — Ensure all tests pass": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788898607060
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788900870444
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788901041390
+      },
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788901112906
+      }
+    ],
+    "2. Implement Config Loader": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899101798
+      }
+    ],
+    "3. Implement Skill Loader": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899104938
+      }
+    ],
+    "4. Implement Fixture Loader": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899108006
+      }
+    ],
+    "6. Implement Activation Checker": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899350529
+      }
+    ],
+    "7. Implement Test Runner": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899746914
+      }
+    ],
+    "8. Implement Result Reporter": [
+      {
+        "executionId": "a1d235db-b71b-4a87-8b19-9b964bfb89fd",
+        "chatSessionId": "sess_e7bd50c2-f7c2-48ff-b73e-e9d30e119955",
+        "timestamp": 1788899838495
+      }
+    ],
+    "9. Implement CLI entry point and wire components": [
+      {
+        "executionId": "89cb6928-5f10-4397-83e2-0af3e9f4bb3c",
+        "chatSessionId": "sess_b4ff34dd-0b86-4997-9fc7-f6219dfd343e",
+        "timestamp": 1788901037707
+      }
+    ]
+  }
+}
