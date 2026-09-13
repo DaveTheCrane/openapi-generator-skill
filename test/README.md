@@ -37,15 +37,64 @@ Available settings:
 | `verbose`      | Enable verbose output.                                            |
 | `api_base`     | Base URL for the model provider/endpoint.                        |
 | `extra_params` | `harness.yaml`-only mapping forwarded to litellm.                |
+| `report_format` | Output report format: `text` (default), `json`, or `junit`. |
+| `report_file`   | Optional path to write the report to instead of stdout.      |
 
 Environment variables:
 
 - `SKILL_HARNESS_MODEL` — overrides `model`.
 - `SKILL_HARNESS_API_BASE` — overrides `api_base`.
+- `SKILL_HARNESS_REPORT_FORMAT` — overrides `report_format`.
+- `SKILL_HARNESS_REPORT_FILE` — overrides `report_file`.
 
 By default the judge model is a cloud model (`claude-3-5-haiku-20241022`), which
 needs the corresponding provider API key in the environment (e.g.
 `ANTHROPIC_API_KEY`).
+
+## Report formats
+
+The harness can emit results in three formats via `--report-format
+{text,json,junit}` (default `text`). Use `--report-file PATH` to write the
+report to a file instead of stdout; in that case a short `Report written to
+<path>` confirmation is printed to stdout.
+
+- `text`: human-readable console output, with per-case ✓/✗/! markers, a Results
+  summary line, and a metadata footer.
+- `json`: a machine-readable document with `tool`, `metadata` (model,
+  timeout_seconds, api_base, timestamp, duration_ms), `summary`, and per-case
+  `results` (including `reasoning`, `latency_ms`, and `error`). Good for
+  dashboards or tracking accuracy across models over time.
+- `junit`: JUnit XML for CI systems. It is CI-agnostic and consumed natively by
+  most CI platforms (e.g. GitLab, Jenkins, CircleCI, Azure DevOps) or via a
+  plugin/action. Per-case LLM reasoning is included in each testcase's
+  `<system-out>` (spec-compatible; ignored by tools that don't display it). Run
+  metadata (model, timeout, api_base) is emitted as testsuite `<properties>`.
+
+The process exit code is the same regardless of format: `0` when all cases
+pass, `1` if any case fails or errors — so CI gating works with any format.
+
+Example commands:
+
+```
+# JUnit XML written to a file for CI to collect
+python test/test_skill.py --report-format junit --report-file reports/skill-activation.xml
+
+# JSON to stdout
+python test/test_skill.py --report-format json
+```
+
+### Sample reports
+
+The `sample-reports/` folder contains example output in each format, in two
+sets:
+
+- all-pass: `sample-reports/all-pass.txt`, `sample-reports/all-pass.json`,
+  `sample-reports/all-pass.xml`
+- mixed-outcomes: `sample-reports/mixed-outcomes.txt`,
+  `sample-reports/mixed-outcomes.json`, `sample-reports/mixed-outcomes.xml`
+
+The all-pass set is from a real local Ollama run. The mixed-outcomes set is
+illustrative — hand-constructed to show a FAIL and an ERROR case.
 
 ## Using a local Ollama model
 

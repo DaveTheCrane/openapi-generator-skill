@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="skill-activation" tests="4" failures="1" errors="1" time="11.345" timestamp="2026-09-13T15:10:00+00:00">
+    <properties>
+      <property name="model" value="ollama_chat/qwen3.5:latest"/>
+      <property name="timeout_seconds" value="120"/>
+      <property name="api_base" value="http://localhost:11434"/>
+      <property name="tool" value="skill-activation-harness"/>
+    </properties>
+    <testcase name="scaffold-microservice-from-spec" classname="skill-activation" time="3.977">
+      <system-out>reasoning: The user explicitly requests scaffolding a Spring Boot microservice from an OpenAPI spec, a direct match for the skill.</system-out>
+    </testcase>
+    <testcase name="generate-http-client" classname="skill-activation" time="3.733">
+      <failure message="expected activate got no_activate" type="assertion"/>
+      <system-out>reasoning: The model judged this as client generation unrelated to the skill; this is a borderline prompt the local model got wrong.</system-out>
+    </testcase>
+    <testcase name="python-fastapi" classname="skill-activation" time="3.635">
+      <system-out>reasoning: Different language and framework; the skill targets Spring Boot only.</system-out>
+    </testcase>
+    <testcase name="docker-compose-setup" classname="skill-activation" time="0.000">
+      <error message="LLM API call failed: litellm.Timeout: Connection timed out after 120.0 seconds." type="CheckerError"/>
+    </testcase>
+  </testsuite>
+</testsuites>

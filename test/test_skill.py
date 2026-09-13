@@ -53,7 +53,7 @@ def main() -> None:
         sys.exit(2)
 
     summary = run(cases, skill, config)
-    exit_code = report(summary, config.verbose)
+    exit_code = report(summary, config)
     sys.exit(exit_code)
 
 

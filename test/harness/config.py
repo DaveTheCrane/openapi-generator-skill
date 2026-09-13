@@ -19,6 +19,7 @@ from .models import HarnessConfig
 _DEFAULT_MODEL = "claude-3-5-haiku-20241022"
 _DEFAULT_TIMEOUT = 30
 _CONFIG_FILE = "harness.yaml"
+_ALLOWED_REPORT_FORMATS = ("text", "json", "junit")
 
 
 def _load_file_config(cwd: str) -> dict:
@@ -72,6 +73,18 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="api_base",
         help="Base URL for the LLM provider API (e.g. http://localhost:11434).",
     )
+    parser.add_argument(
+        "--report-format",
+        dest="report_format",
+        choices=list(_ALLOWED_REPORT_FORMATS),
+        help="Output report format (text, json, or junit). Default: text.",
+    )
+    parser.add_argument(
+        "--report-file",
+        metavar="PATH",
+        dest="report_file",
+        help="Write the rendered report to this file instead of stdout.",
+    )
     return parser
 
 
@@ -80,6 +93,28 @@ def validate_timeout(timeout: int) -> None:
     if not (1 <= timeout <= 300):
         raise ConfigError(
             f"timeout must be an integer between 1 and 300 inclusive, got {timeout!r}."
+        )
+
+
+def _validate_report_format(report_format: str) -> None:
+    """Raise ConfigError if *report_format* is not an allowed value."""
+    if report_format not in _ALLOWED_REPORT_FORMATS:
+        allowed = ", ".join(_ALLOWED_REPORT_FORMATS)
+        raise ConfigError(
+            f"report_format must be one of [{allowed}], got {report_format!r}."
+        )
+
+
+def _validate_report_file(report_file: str) -> None:
+    """Raise ConfigError if *report_file*'s parent directory does not exist.
+
+    The file itself need not pre-exist; only its parent directory must exist so
+    that the report can be written.
+    """
+    parent = Path(report_file).parent
+    if not parent.exists():
+        raise ConfigError(
+            f"report_file parent directory does not exist: {str(parent)!r}"
         )
 
 
@@ -125,6 +160,8 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
     verbose: bool = False
     api_base: str | None = None
     extra_params: dict = {}
+    report_format: str = "text"
+    report_file: str | None = None
 
     # --- Layer 2: harness.yaml ---
     file_config = _load_file_config(cwd)
@@ -140,6 +177,10 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
         verbose = bool(file_config["verbose"])
     if "api_base" in file_config:
         api_base = str(file_config["api_base"])
+    if "report_format" in file_config:
+        report_format = str(file_config["report_format"])
+    if "report_file" in file_config:
+        report_file = str(file_config["report_file"])
     if "extra_params" in file_config:
         raw_extra = file_config["extra_params"]
         if not isinstance(raw_extra, dict):
@@ -155,6 +196,12 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
     env_api_base = os.environ.get("SKILL_HARNESS_API_BASE")
     if env_api_base:
         api_base = env_api_base
+    env_report_format = os.environ.get("SKILL_HARNESS_REPORT_FORMAT")
+    if env_report_format:
+        report_format = env_report_format
+    env_report_file = os.environ.get("SKILL_HARNESS_REPORT_FILE")
+    if env_report_file:
+        report_file = env_report_file
 
     # --- Layer 4: CLI arguments ---
     parser = _build_parser()
@@ -170,6 +217,10 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
         timeout_seconds = args.timeout
     if args.api_base is not None:
         api_base = args.api_base
+    if args.report_format is not None:
+        report_format = args.report_format
+    if args.report_file is not None:
+        report_file = args.report_file
     # argparse sets verbose to None when not supplied (due to default=None) so
     # we only override the accumulated value when the flag was explicitly passed.
     if args.verbose:
@@ -193,6 +244,10 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
 
     validate_timeout(timeout_seconds)
 
+    _validate_report_format(report_format)
+    if report_file is not None:
+        _validate_report_file(report_file)
+
     return HarnessConfig(
         skill_path=skill_path,
         fixture_path=fixture_path,
@@ -201,4 +256,6 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
         verbose=verbose,
         api_base=api_base,
         extra_params=extra_params,
+        report_format=report_format,
+        report_file=report_file,
     )

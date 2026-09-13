@@ -418,3 +418,175 @@ class TestLoadConfigValidationErrors:
                 argv=["--skill", str(skill), "--fixture", str(fixture), "--timeout", "301"],
                 cwd=str(tmp_path),
             )
+
+
+# ---------------------------------------------------------------------------
+# load_config — report_format / report_file
+# ---------------------------------------------------------------------------
+
+
+class TestLoadConfigReport:
+    def test_default_report_format_is_text(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.delenv("SKILL_HARNESS_REPORT_FORMAT", raising=False)
+        cfg = load_config(
+            argv=["--skill", str(skill), "--fixture", str(fixture)],
+            cwd=str(tmp_path),
+        )
+        assert cfg.report_format == "text"
+
+    def test_default_report_file_is_none(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.delenv("SKILL_HARNESS_REPORT_FILE", raising=False)
+        cfg = load_config(
+            argv=["--skill", str(skill), "--fixture", str(fixture)],
+            cwd=str(tmp_path),
+        )
+        assert cfg.report_file is None
+
+    def test_cli_report_format(self, tmp_path):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        cfg = load_config(
+            argv=[
+                "--skill", str(skill),
+                "--fixture", str(fixture),
+                "--report-format", "json",
+            ],
+            cwd=str(tmp_path),
+        )
+        assert cfg.report_format == "json"
+
+    def test_cli_report_file(self, tmp_path):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        out = tmp_path / "out.json"
+        cfg = load_config(
+            argv=[
+                "--skill", str(skill),
+                "--fixture", str(fixture),
+                "--report-file", str(out),
+            ],
+            cwd=str(tmp_path),
+        )
+        assert cfg.report_file == str(out)
+
+    def test_file_provides_report_format(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.delenv("SKILL_HARNESS_REPORT_FORMAT", raising=False)
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\nreport_format: junit\n",
+            encoding="utf-8",
+        )
+        cfg = load_config(argv=[], cwd=str(tmp_path))
+        assert cfg.report_format == "junit"
+
+    def test_file_provides_report_file(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.delenv("SKILL_HARNESS_REPORT_FILE", raising=False)
+        out = tmp_path / "file-report.xml"
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\nreport_file: {out}\n",
+            encoding="utf-8",
+        )
+        cfg = load_config(argv=[], cwd=str(tmp_path))
+        assert cfg.report_file == str(out)
+
+    def test_env_overrides_file_report_format(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\nreport_format: text\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("SKILL_HARNESS_REPORT_FORMAT", "json")
+        cfg = load_config(argv=[], cwd=str(tmp_path))
+        assert cfg.report_format == "json"
+
+    def test_env_overrides_file_report_file(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        file_path = tmp_path / "from-file.json"
+        env_path = tmp_path / "from-env.json"
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\nreport_file: {file_path}\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("SKILL_HARNESS_REPORT_FILE", str(env_path))
+        cfg = load_config(argv=[], cwd=str(tmp_path))
+        assert cfg.report_file == str(env_path)
+
+    def test_cli_overrides_env_report_format(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.setenv("SKILL_HARNESS_REPORT_FORMAT", "json")
+        cfg = load_config(
+            argv=[
+                "--skill", str(skill),
+                "--fixture", str(fixture),
+                "--report-format", "junit",
+            ],
+            cwd=str(tmp_path),
+        )
+        assert cfg.report_format == "junit"
+
+    def test_cli_overrides_env_report_file(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        env_path = tmp_path / "env.json"
+        cli_path = tmp_path / "cli.json"
+        monkeypatch.setenv("SKILL_HARNESS_REPORT_FILE", str(env_path))
+        cfg = load_config(
+            argv=[
+                "--skill", str(skill),
+                "--fixture", str(fixture),
+                "--report-file", str(cli_path),
+            ],
+            cwd=str(tmp_path),
+        )
+        assert cfg.report_file == str(cli_path)
+
+    def test_invalid_report_format_from_file_raises(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.delenv("SKILL_HARNESS_REPORT_FORMAT", raising=False)
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\nreport_format: xml\n",
+            encoding="utf-8",
+        )
+        with pytest.raises(ConfigError, match="report_format"):
+            load_config(argv=[], cwd=str(tmp_path))
+
+    def test_nonexistent_report_file_parent_raises(self, tmp_path):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        missing = tmp_path / "no_such_dir" / "report.json"
+        with pytest.raises(ConfigError, match="report_file"):
+            load_config(
+                argv=[
+                    "--skill", str(skill),
+                    "--fixture", str(fixture),
+                    "--report-file", str(missing),
+                ],
+                cwd=str(tmp_path),
+            )
+
+    def test_existing_parent_report_file_ok(self, tmp_path):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        # File does not pre-exist but parent (tmp_path) does.
+        out = tmp_path / "will-be-created.json"
+        cfg = load_config(
+            argv=[
+                "--skill", str(skill),
+                "--fixture", str(fixture),
+                "--report-file", str(out),
+            ],
+            cwd=str(tmp_path),
+        )
+        assert cfg.report_file == str(out)
+        assert not out.exists()

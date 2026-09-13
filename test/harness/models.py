@@ -31,6 +31,8 @@ class HarnessConfig:
     verbose: bool = False
     api_base: str | None = None
     extra_params: dict = field(default_factory=dict)
+    report_format: str = "text"
+    report_file: str | None = None
 
 
 @dataclass
