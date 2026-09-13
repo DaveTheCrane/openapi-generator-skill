@@ -1,0 +1,56 @@
+skill: springboot-openapi-generator
+
+cases:
+  # --- should activate ---
+
+  - id: scaffold-microservice-from-spec
+    prompt: "Create a Spring Boot REST microservice from this OpenAPI spec file"
+    expected: activate
+    notes: "Core use case — scaffolding a server from an OpenAPI/Swagger definition"
+
+  - id: generate-server-stubs
+    prompt: "Generate Spring Boot server stubs and controller interfaces from my Swagger YAML"
+    expected: activate
+    notes: "User wants to avoid hand-writing controllers and DTOs — direct match"
+
+  - id: generate-http-client
+    prompt: "Generate an HTTP client library for a downstream service using its OpenAPI specification"
+    expected: activate
+    notes: "Matches the client-library generation use case in the skill's When to Use section"
+
+  - id: add-openapi-plugin-to-maven
+    prompt: "Set up the openapi-generator-maven-plugin in my Spring Boot project to generate code from an OpenAPI spec"
+    expected: activate
+    notes: "The skill's primary mechanism is configuring this exact Maven plugin"
+
+  - id: delegate-pattern-microservice
+    prompt: "Scaffold a Spring Boot microservice using the delegate pattern from an OpenAPI definition so I only write the business logic"
+    expected: activate
+    notes: "Explicitly names the delegate pattern, which is the skill's core approach"
+
+  # --- should not activate ---
+
+  - id: plain-java-loop
+    prompt: "How do I write a for loop in Java?"
+    expected: no_activate
+    notes: "Generic Java language question — unrelated to OpenAPI or microservice scaffolding"
+
+  - id: python-fastapi
+    prompt: "Build me a REST API in Python using FastAPI"
+    expected: no_activate
+    notes: "Different language and framework — skill targets Java/Spring Boot only"
+
+  - id: debug-spring-datasource
+    prompt: "My Spring Boot application can't connect to the database, how do I fix the datasource config?"
+    expected: no_activate
+    notes: "Spring Boot troubleshooting question, not OpenAPI code generation"
+
+  - id: react-frontend
+    prompt: "Create a React frontend that calls a REST API"
+    expected: no_activate
+    notes: "Frontend development task — completely outside the skill's scope"
+
+  - id: docker-compose-setup
+    prompt: "Write a Docker Compose file for my Spring Boot app and PostgreSQL database"
+    expected: no_activate
+    notes: "Infrastructure/container question, not microservice scaffolding from an OpenAPI spec"

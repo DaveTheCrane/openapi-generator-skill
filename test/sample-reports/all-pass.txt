@@ -1,0 +1,30 @@
+Running skill activation tests...
+
+  ✓ scaffold-microservice-from-spec [activate → activate]
+      The user explicitly requests creating a Spring Boot REST microservice from an OpenAPI specification, which directly matches the skill's purpose and usage criteria.
+  ✓ generate-server-stubs          [activate → activate]
+      The user explicitly requests generating Spring Boot server stubs and controllers from a Swagger YAML file, which directly matches the skill's purpose of scaffolding microservices from OpenAPI specifications.
+  ✓ generate-http-client           [activate → activate]
+      The user explicitly requests generating an HTTP client library from an OpenAPI specification, which directly matches the skill's guidance for scaffolding client libraries and using the delegate pattern. This aligns perfectly with the skill's intended use case.
+  ✓ add-openapi-plugin-to-maven    [activate → activate]
+      The user's request explicitly involves setting up the openapi-generator-maven-plugin within a Spring Boot project to generate code from an OpenAPI specification, which directly matches the skill's purpose.
+  ✓ delegate-pattern-microservice  [activate → activate]
+      The user explicitly requests scaffolding a Spring Boot microservice using the delegate pattern from an OpenAPI definition, which directly matches the skill's description and usage guidelines.
+  ✓ plain-java-loop                [no_activate → no_activate]
+      The user is asking for basic Java syntax (a for loop), not for generating a Spring Boot microservice from an OpenAPI specification.
+  ✓ python-fastapi                 [no_activate → no_activate]
+      The user explicitly requests a Python FastAPI solution, whereas this skill is specifically designed for generating Java-based Spring Boot microservices from OpenAPI specifications.
+  ✓ debug-spring-datasource        [no_activate → no_activate]
+      The user is asking about fixing a database datasource configuration issue, which is unrelated to generating code from an OpenAPI specification.
+  ✓ react-frontend                 [no_activate → no_activate]
+      The user is requesting a React frontend, whereas this skill is specifically for generating Spring Boot backend services from OpenAPI specifications.
+  ✓ docker-compose-setup           [no_activate → no_activate]
+      The user is requesting a Docker Compose configuration, not code generation from an OpenAPI specification.
+
+Results: 10 passed, 0 failed, 0 error  (10 total)
+
+Model: ollama_chat/qwen3.5:latest
+Timeout: 120s
+API base: http://localhost:11434
+Duration: 43411 ms
+Timestamp: 2026-09-13T15:05:46.915983+00:00

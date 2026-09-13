@@ -1,0 +1,17 @@
+Running skill activation tests...
+
+  ✓ scaffold-microservice-from-spec [activate → activate]
+      The user explicitly requests scaffolding a Spring Boot microservice from an OpenAPI spec, a direct match for the skill.
+  ✗ generate-http-client           [activate → no_activate]   FAIL
+      The model judged this as client generation unrelated to the skill; this is a borderline prompt the local model got wrong.
+  ✓ python-fastapi                 [no_activate → no_activate]
+      Different language and framework; the skill targets Spring Boot only.
+  ! docker-compose-setup           [no_activate → ERROR: LLM API call failed: litellm.Timeout: Connection timed out after 120.0 seconds.]
+
+Results: 2 passed, 1 failed, 1 error  (4 total)
+
+Model: ollama_chat/qwen3.5:latest
+Timeout: 120s
+API base: http://localhost:11434
+Duration: 11345 ms
+Timestamp: 2026-09-13T15:10:00+00:00

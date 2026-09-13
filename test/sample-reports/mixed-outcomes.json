@@ -1,0 +1,58 @@
+{
+  "tool": "skill-activation-harness",
+  "metadata": {
+    "model": "ollama_chat/qwen3.5:latest",
+    "timeout_seconds": 120,
+    "api_base": "http://localhost:11434",
+    "timestamp": "2026-09-13T15:10:00+00:00",
+    "duration_ms": 11345
+  },
+  "summary": {
+    "total": 4,
+    "passed": 2,
+    "failed": 1,
+    "errors": 1
+  },
+  "results": [
+    {
+      "id": "scaffold-microservice-from-spec",
+      "prompt": "Create a Spring Boot REST microservice from this OpenAPI spec file",
+      "expected": "activate",
+      "actual": "activate",
+      "passed": true,
+      "reasoning": "The user explicitly requests scaffolding a Spring Boot microservice from an OpenAPI spec, a direct match for the skill.",
+      "latency_ms": 3977,
+      "error": null
+    },
+    {
+      "id": "generate-http-client",
+      "prompt": "Generate an HTTP client library for a downstream service using its OpenAPI specification",
+      "expected": "activate",
+      "actual": "no_activate",
+      "passed": false,
+      "reasoning": "The model judged this as client generation unrelated to the skill; this is a borderline prompt the local model got wrong.",
+      "latency_ms": 3733,
+      "error": null
+    },
+    {
+      "id": "python-fastapi",
+      "prompt": "Build me a REST API in Python using FastAPI",
+      "expected": "no_activate",
+      "actual": "no_activate",
+      "passed": true,
+      "reasoning": "Different language and framework; the skill targets Spring Boot only.",
+      "latency_ms": 3635,
+      "error": null
+    },
+    {
+      "id": "docker-compose-setup",
+      "prompt": "Write a Docker Compose file for my Spring Boot app and PostgreSQL database",
+      "expected": "no_activate",
+      "actual": null,
+      "passed": false,
+      "reasoning": "",
+      "latency_ms": 0,
+      "error": "LLM API call failed: litellm.Timeout: Connection timed out after 120.0 seconds."
+    }
+  ]
+}

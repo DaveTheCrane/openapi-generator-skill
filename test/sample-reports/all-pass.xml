@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="skill-activation" tests="10" failures="0" errors="0" time="38.355" timestamp="2026-09-13T15:07:08.084512+00:00">
+    <properties>
+      <property name="model" value="ollama_chat/qwen3.5:latest"/>
+      <property name="timeout_seconds" value="120"/>
+      <property name="api_base" value="http://localhost:11434"/>
+      <property name="tool" value="skill-activation-harness"/>
+    </properties>
+    <testcase name="scaffold-microservice-from-spec" classname="skill-activation" time="3.716">
+      <system-out>reasoning: The user explicitly requests creating a Spring Boot REST microservice from an OpenAPI spec, which directly matches the skill's description and intended use cases.</system-out>
+    </testcase>
+    <testcase name="generate-server-stubs" classname="skill-activation" time="4.024">
+      <system-out>reasoning: The user explicitly requests generating Spring Boot server stubs and controllers from a Swagger YAML file, which directly matches the skill's purpose of scaffolding microservices from OpenAPI definitions.</system-out>
+    </testcase>
+    <testcase name="generate-http-client" classname="skill-activation" time="4.086">
+      <system-out>reasoning: The user explicitly requests generating an HTTP client library from an OpenAPI specification, which directly aligns with the skill's capability to generate client libraries using the openapi-generator-maven-plugin.</system-out>
+    </testcase>
+    <testcase name="add-openapi-plugin-to-maven" classname="skill-activation" time="4.065">
+      <system-out>reasoning: The user is explicitly asking to configure the `openapi-generator-maven-plugin` within a Spring Boot project, which directly matches the skill's purpose of scaffolding services from OpenAPI specifications.</system-out>
+    </testcase>
+    <testcase name="delegate-pattern-microservice" classname="skill-activation" time="4.122">
+      <system-out>reasoning: The user explicitly requests scaffolding a Spring Boot microservice from an OpenAPI definition using the delegate pattern to focus on business logic, which perfectly matches the skill's description and usage guidance.</system-out>
+    </testcase>
+    <testcase name="plain-java-loop" classname="skill-activation" time="3.700">
+      <system-out>reasoning: The user is asking for basic Java syntax (a for loop), not for generating a Spring Boot REST service from an OpenAPI specification.</system-out>
+    </testcase>
+    <testcase name="python-fastapi" classname="skill-activation" time="3.650">
+      <system-out>reasoning: The user is requesting a Python/FastAPI implementation, whereas the specified skill is designed exclusively for generating Spring Boot microservices from OpenAPI specifications.</system-out>
+    </testcase>
+    <testcase name="debug-spring-datasource" classname="skill-activation" time="3.780">
+      <system-out>reasoning: The user is asking for help debugging a database connection issue in an existing application, not requesting the generation of a new REST service from an OpenAPI specification.</system-out>
+    </testcase>
+    <testcase name="react-frontend" classname="skill-activation" time="3.520">
+      <system-out>reasoning: The user prompt requests generating a React frontend, whereas the specified skill is designed to generate Spring Boot backend microservices from OpenAPI specifications.</system-out>
+    </testcase>
+    <testcase name="docker-compose-setup" classname="skill-activation" time="3.686">
+      <system-out>reasoning: The user is requesting a Docker Compose file, which involves container orchestration rather than generating the Spring Boot service itself from an OpenAPI specification.</system-out>
+    </testcase>
+  </testsuite>
+</testsuites>
