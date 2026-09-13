@@ -260,6 +260,110 @@ class TestLoadConfigEnvVar:
 
 
 # ---------------------------------------------------------------------------
+# load_config — api_base
+# ---------------------------------------------------------------------------
+
+
+class TestLoadConfigApiBase:
+    def test_default_api_base_is_none(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.delenv("SKILL_HARNESS_API_BASE", raising=False)
+        cfg = load_config(
+            argv=["--skill", str(skill), "--fixture", str(fixture)],
+            cwd=str(tmp_path),
+        )
+        assert cfg.api_base is None
+
+    def test_file_provides_api_base(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.delenv("SKILL_HARNESS_API_BASE", raising=False)
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\napi_base: http://localhost:11434\n",
+            encoding="utf-8",
+        )
+        cfg = load_config(argv=[], cwd=str(tmp_path))
+        assert cfg.api_base == "http://localhost:11434"
+
+    def test_env_var_overrides_file_api_base(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\napi_base: http://file-host:11434\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("SKILL_HARNESS_API_BASE", "http://env-host:11434")
+        cfg = load_config(argv=[], cwd=str(tmp_path))
+        assert cfg.api_base == "http://env-host:11434"
+
+    def test_cli_api_base_overrides_env_var(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.setenv("SKILL_HARNESS_API_BASE", "http://env-host:11434")
+        cfg = load_config(
+            argv=[
+                "--skill", str(skill),
+                "--fixture", str(fixture),
+                "--api-base", "http://cli-host:11434",
+            ],
+            cwd=str(tmp_path),
+        )
+        assert cfg.api_base == "http://cli-host:11434"
+
+    def test_cli_api_base_overrides_file(self, tmp_path, monkeypatch):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        monkeypatch.delenv("SKILL_HARNESS_API_BASE", raising=False)
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\napi_base: http://file-host:11434\n",
+            encoding="utf-8",
+        )
+        cfg = load_config(
+            argv=["--api-base", "http://cli-host:11434"],
+            cwd=str(tmp_path),
+        )
+        assert cfg.api_base == "http://cli-host:11434"
+
+
+# ---------------------------------------------------------------------------
+# load_config — extra_params
+# ---------------------------------------------------------------------------
+
+
+class TestLoadConfigExtraParams:
+    def test_default_extra_params_is_empty_dict(self, tmp_path):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        cfg = load_config(
+            argv=["--skill", str(skill), "--fixture", str(fixture)],
+            cwd=str(tmp_path),
+        )
+        assert cfg.extra_params == {}
+
+    def test_file_provides_extra_params(self, tmp_path):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\n"
+            "extra_params:\n  think: false\n  num_predict: 300\n",
+            encoding="utf-8",
+        )
+        cfg = load_config(argv=[], cwd=str(tmp_path))
+        assert cfg.extra_params == {"think": False, "num_predict": 300}
+
+    def test_non_mapping_extra_params_raises(self, tmp_path):
+        skill = _make_skill(tmp_path)
+        fixture = _make_fixture(tmp_path)
+        (tmp_path / "harness.yaml").write_text(
+            f"skill: {skill}\nfixture: {fixture}\nextra_params:\n  - not\n  - a\n  - map\n",
+            encoding="utf-8",
+        )
+        with pytest.raises(ConfigError, match="extra_params"):
+            load_config(argv=[], cwd=str(tmp_path))
+
+
+# ---------------------------------------------------------------------------
 # load_config — validation errors
 # ---------------------------------------------------------------------------
 

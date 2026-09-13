@@ -82,17 +82,33 @@ def _parse_response(content: str) -> tuple[str, str]:
     return decision, str(data["reasoning"])
 
 
-def _call_llm(messages: list[dict], model: str, timeout_seconds: int) -> str:
+def _call_llm(
+    messages: list[dict],
+    model: str,
+    timeout_seconds: int,
+    api_base: str | None = None,
+    extra_params: dict | None = None,
+) -> str:
     """Call litellm and return the response message content string.
+
+    ``api_base`` is forwarded only when provided. ``extra_params`` is spread
+    into the call to support provider-specific options (e.g. ``think``,
+    ``num_predict`` for Ollama).
 
     Raises ``CheckerError`` on any litellm / network exception.
     """
+    kwargs: dict = {
+        "model": model,
+        "messages": messages,
+        "timeout": timeout_seconds,
+    }
+    if api_base is not None:
+        kwargs["api_base"] = api_base
+    if extra_params:
+        kwargs.update(extra_params)
+
     try:
-        response = litellm.completion(
-            model=model,
-            messages=messages,
-            timeout=timeout_seconds,
-        )
+        response = litellm.completion(**kwargs)
         return response.choices[0].message.content  # type: ignore[union-attr]
     except Exception as exc:
         raise CheckerError(f"LLM API call failed: {exc}") from exc
@@ -108,6 +124,8 @@ def check_activation(
     skill: SkillDefinition,
     model: str,
     timeout_seconds: int,
+    api_base: str | None = None,
+    extra_params: dict | None = None,
 ) -> CheckResult:
     """Determine whether *prompt_case* should activate *skill* via an LLM judge.
 
@@ -135,13 +153,13 @@ def check_activation(
     start = time.perf_counter()
 
     # First attempt
-    content = _call_llm(messages, model, timeout_seconds)
+    content = _call_llm(messages, model, timeout_seconds, api_base, extra_params)
 
     try:
         decision, reasoning = _parse_response(content)
     except ValueError:
         # Retry once on malformed / missing-field response
-        content = _call_llm(messages, model, timeout_seconds)
+        content = _call_llm(messages, model, timeout_seconds, api_base, extra_params)
         try:
             decision, reasoning = _parse_response(content)
         except ValueError as exc:

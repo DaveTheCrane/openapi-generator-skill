@@ -29,6 +29,8 @@ class HarnessConfig:
     model: str = "claude-3-5-haiku-20241022"
     timeout_seconds: int = 30
     verbose: bool = False
+    api_base: str | None = None
+    extra_params: dict = field(default_factory=dict)
 
 
 @dataclass

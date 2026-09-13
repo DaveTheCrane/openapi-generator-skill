@@ -211,6 +211,65 @@ class TestLLMPromptContent:
 
 
 # --------------------------------------------------------------------------- #
+# api_base and extra_params passthrough                                         #
+# --------------------------------------------------------------------------- #
+
+
+class TestProviderParamsPassthrough:
+    def test_api_base_forwarded_when_provided(self):
+        with patch("harness.activation_checker.litellm.completion") as mock_llm:
+            mock_llm.return_value = _mock_response("activate")
+            check_activation(
+                ACTIVATE_CASE, SKILL, "test-model", 30,
+                api_base="http://localhost:11434",
+            )
+        assert mock_llm.call_args[1]["api_base"] == "http://localhost:11434"
+
+    def test_api_base_omitted_when_none(self):
+        with patch("harness.activation_checker.litellm.completion") as mock_llm:
+            mock_llm.return_value = _mock_response("activate")
+            check_activation(ACTIVATE_CASE, SKILL, "test-model", 30)
+        assert "api_base" not in mock_llm.call_args[1]
+
+    def test_extra_params_spread_into_call(self):
+        with patch("harness.activation_checker.litellm.completion") as mock_llm:
+            mock_llm.return_value = _mock_response("activate")
+            check_activation(
+                ACTIVATE_CASE, SKILL, "test-model", 30,
+                extra_params={"think": False, "num_predict": 300},
+            )
+        kwargs = mock_llm.call_args[1]
+        assert kwargs["think"] is False
+        assert kwargs["num_predict"] == 300
+
+    def test_empty_extra_params_adds_nothing(self):
+        with patch("harness.activation_checker.litellm.completion") as mock_llm:
+            mock_llm.return_value = _mock_response("activate")
+            check_activation(ACTIVATE_CASE, SKILL, "test-model", 30, extra_params={})
+        kwargs = mock_llm.call_args[1]
+        # Only the three baseline kwargs should be present.
+        assert set(kwargs.keys()) == {"model", "messages", "timeout"}
+
+    def test_api_base_and_extra_params_forwarded_on_retry(self):
+        """Provider params must be forwarded on the retry call too."""
+        bad = MagicMock()
+        bad.choices = [MagicMock()]
+        bad.choices[0].message.content = "not json"
+        good = _mock_response("activate")
+        with patch("harness.activation_checker.litellm.completion") as mock_llm:
+            mock_llm.side_effect = [bad, good]
+            check_activation(
+                ACTIVATE_CASE, SKILL, "test-model", 30,
+                api_base="http://localhost:11434",
+                extra_params={"think": False},
+            )
+        assert mock_llm.call_count == 2
+        retry_kwargs = mock_llm.call_args_list[1][1]
+        assert retry_kwargs["api_base"] == "http://localhost:11434"
+        assert retry_kwargs["think"] is False
+
+
+# --------------------------------------------------------------------------- #
 # Retry logic — malformed / missing-field JSON                                  #
 # --------------------------------------------------------------------------- #
 

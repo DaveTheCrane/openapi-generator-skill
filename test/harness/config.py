@@ -66,6 +66,12 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Print LLM reasoning for each prompt case.",
     )
+    parser.add_argument(
+        "--api-base",
+        metavar="URL",
+        dest="api_base",
+        help="Base URL for the LLM provider API (e.g. http://localhost:11434).",
+    )
     return parser
 
 
@@ -117,6 +123,8 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
     model: str = _DEFAULT_MODEL
     timeout_seconds: int = _DEFAULT_TIMEOUT
     verbose: bool = False
+    api_base: str | None = None
+    extra_params: dict = {}
 
     # --- Layer 2: harness.yaml ---
     file_config = _load_file_config(cwd)
@@ -130,11 +138,23 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
         timeout_seconds = int(file_config["timeout"])
     if "verbose" in file_config:
         verbose = bool(file_config["verbose"])
+    if "api_base" in file_config:
+        api_base = str(file_config["api_base"])
+    if "extra_params" in file_config:
+        raw_extra = file_config["extra_params"]
+        if not isinstance(raw_extra, dict):
+            raise ConfigError(
+                f"extra_params must be a mapping, got {type(raw_extra).__name__}."
+            )
+        extra_params = dict(raw_extra)
 
-    # --- Layer 3: SKILL_HARNESS_MODEL env var (model only) ---
+    # --- Layer 3: env vars ---
     env_model = os.environ.get("SKILL_HARNESS_MODEL")
     if env_model:
         model = env_model
+    env_api_base = os.environ.get("SKILL_HARNESS_API_BASE")
+    if env_api_base:
+        api_base = env_api_base
 
     # --- Layer 4: CLI arguments ---
     parser = _build_parser()
@@ -148,6 +168,8 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
         model = args.model
     if args.timeout is not None:
         timeout_seconds = args.timeout
+    if args.api_base is not None:
+        api_base = args.api_base
     # argparse sets verbose to None when not supplied (due to default=None) so
     # we only override the accumulated value when the flag was explicitly passed.
     if args.verbose:
@@ -177,4 +199,6 @@ def load_config(argv: list[str] | None = None, cwd: str | None = None) -> Harnes
         model=model,
         timeout_seconds=timeout_seconds,
         verbose=verbose,
+        api_base=api_base,
+        extra_params=extra_params,
     )

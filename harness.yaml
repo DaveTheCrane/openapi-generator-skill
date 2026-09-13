@@ -1,0 +1,9 @@
+skill: springboot-openapi-generator/SKILL.md
+fixture: test/fixtures/springboot-openapi-generator.yaml
+model: ollama_chat/qwen3.5:latest
+api_base: http://localhost:11434
+timeout: 120
+verbose: true
+extra_params:
+  think: false
+  num_predict: 300

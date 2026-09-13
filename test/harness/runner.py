@@ -46,6 +46,8 @@ def run(
                 skill=skill,
                 model=config.model,
                 timeout_seconds=config.timeout_seconds,
+                api_base=config.api_base,
+                extra_params=config.extra_params,
             )
             if result.passed:
                 passed += 1

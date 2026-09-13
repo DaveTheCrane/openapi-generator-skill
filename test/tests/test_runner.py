@@ -245,6 +245,34 @@ class TestSequentialProcessing:
         _, kwargs = mock_checker.call_args
         assert kwargs["skill"] is SKILL
 
+    def test_check_activation_called_with_api_base(self):
+        case = _make_case("single")
+        result = _make_result(case, True)
+        config = HarnessConfig(
+            skill_path="/fake/SKILL.md",
+            fixture_path="/fake/fixture.yaml",
+            model="test-model",
+            api_base="http://localhost:11434",
+        )
+        with patch("harness.runner.check_activation", return_value=result) as mock_checker:
+            run([case], SKILL, config)
+        _, kwargs = mock_checker.call_args
+        assert kwargs["api_base"] == "http://localhost:11434"
+
+    def test_check_activation_called_with_extra_params(self):
+        case = _make_case("single")
+        result = _make_result(case, True)
+        config = HarnessConfig(
+            skill_path="/fake/SKILL.md",
+            fixture_path="/fake/fixture.yaml",
+            model="test-model",
+            extra_params={"think": False, "num_predict": 300},
+        )
+        with patch("harness.runner.check_activation", return_value=result) as mock_checker:
+            run([case], SKILL, config)
+        _, kwargs = mock_checker.call_args
+        assert kwargs["extra_params"] == {"think": False, "num_predict": 300}
+
 
 # --------------------------------------------------------------------------- #
 # Duration (Requirement 5.5)                                                    #
