@@ -2,231 +2,223 @@
 
 ## Overview
 
-This plan implements the Customer Service REST API using the openapi-generator-maven-plugin with the delegate pattern. Implementation follows strict TDD (Red-Green-Refactor) where every piece of production code is driven by a failing test. The plan proceeds in three phases: (1) Maven build configuration and code generation, (2) delegate implementation driven by unit tests, and (3) integration tests verifying the full HTTP stack.
+This plan implements the Customer Service REST API following strict TDD (Red-Green-Refactor) with hexagonal architecture. The execution order prioritizes components with the most edge cases first: Model classes → GlobalExceptionHandler → CustomerService → CustomerController → AddressServiceClient → ItemServiceClient. Each task produces a failing test first, then the minimal implementation to make it pass.
 
 ## Tasks
 
-- [x] 1. Configure Maven build with openapi-generator-maven-plugin and dependencies
-  - [x] 1.1 Add required Maven dependencies to pom.xml
-    - Add `spring-boot-starter-webflux` dependency for reactive WebClient support
-    - Add `org.openapitools:jackson-databind-nullable` dependency for nullable JSON field handling
-    - Add `io.swagger.core.v3:swagger-annotations` dependency for Swagger annotations in generated code
-    - Add `net.jqwik:jqwik:1.9.2` test dependency for property-based testing
-    - _Requirements: 9.1, 9.2, 9.3_
+- [ ] 1. Add dependencies and configure project
+  - [ ] 1.1 Add required Maven dependencies to pom.xml
+    - Add `spring-boot-starter-webflux` for reactive WebClient
+    - Add `spring-boot-starter-validation` for Bean Validation
+    - Add `net.jqwik:jqwik:1.9.2` (test scope) for property-based testing
+    - Add `com.squareup.okhttp3:mockwebserver` (test scope) for client tests
+    - _Requirements: 7.1, 8.3, 9.2_
+  - [ ] 1.2 Configure application.yaml with client base URLs
+    - Add `client.address-service.base-url: http://localhost:8081`
+    - Add `client.item-service.base-url: http://localhost:8082`
+    - _Requirements: 7.1, 8.1_
 
-  - [x] 1.2 Configure openapi-generator-maven-plugin with server execution
-    - Add `openapi-generator-maven-plugin` (version 7.23.0) to pom.xml build plugins
-    - Configure `CustomerApiServer` execution: generator `spring`, library `spring-boot`, delegatePattern=true
-    - Set inputSpec to `${project.basedir}/specs/server/customer-service-openapi.yaml`
-    - Set apiPackage to `com.example.kirogen.customerservice.server.api`
-    - Set modelPackage to `com.example.kirogen.customerservice.server.data`
-    - Configure `useSpringBoot3=true`, `useJakartaEe=true`
-    - Set supportingFilesToGenerate to `ApiUtil.java`
-    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+- [ ] 2. Implement model classes (TDD)
+  - [ ] 2.1 Implement ErrorResponse model
+    - Write test verifying JSON serialization of all five fields (status, error, message, timestamp, path)
+    - Implement `ErrorResponse` with Lombok `@Data @Builder @NoArgsConstructor @AllArgsConstructor`
+    - _Requirements: 6.1, 9.7_
+  - [ ] 2.2 Implement Address model with null-field serialization
+    - Write test verifying that `line1` and `line2` serialize as JSON `null` (key present with null value) rather than being omitted
+    - Write test verifying required fields serialize correctly
+    - Implement `Address` with `@JsonInclude(JsonInclude.Include.ALWAYS)` and validation annotations
+    - _Requirements: 9.3, 9.4_
+  - [ ] 2.3 Implement Customer model
+    - Write test verifying JSON serialization of all fields including nested Address
+    - Implement `Customer` with Lombok annotations
+    - _Requirements: 9.1_
+  - [ ] 2.4 Implement CustomerCreate model with validation annotations
+    - Write test verifying `@NotBlank` on firstName, lastName, title, phone; `@NotBlank @Email` on email; `@NotNull @Valid` on address
+    - Implement `CustomerCreate` with Bean Validation annotations
+    - _Requirements: 9.2, 10.1, 10.2, 10.3, 10.6, 10.7_
+  - [ ] 2.5 Implement Item and ItemCreate models
+    - Write test verifying Item serialization round-trip (serialize → deserialize produces equal object)
+    - Write test verifying ItemCreate validation annotations (`@NotBlank`, `@Min(0)`, `@NotNull`)
+    - Implement `Item` and `ItemCreate` with Lombok and validation annotations
+    - _Requirements: 9.5, 9.6_
+  - [ ] 2.6 Implement AddressCreate model
+    - Write test verifying serialization and validation annotations
+    - Implement `AddressCreate` with Lombok and `@NotBlank` annotations
+    - _Requirements: 7.4, 7.5_
+  - [ ]* 2.7 Write property test for null address field serialization
+    - **Property 10: Null address fields serialize as JSON null**
+    - **Validates: Requirements 9.4**
+  - [ ]* 2.8 Write property test for Item serialization round-trip
+    - **Property 9: Item model serialization round-trip**
+    - **Validates: Requirements 8.4, 9.5**
 
-  - [x] 1.3 Configure openapi-generator-maven-plugin with Address Service client execution
-    - Add `AddressApiWebClient` execution: generator `java`, library `webclient`
-    - Set inputSpec to `${project.basedir}/specs/client/address-service-openapi.yaml`
-    - Set apiPackage to `com.example.kirogen.customerservice.client.address.api`
-    - Set modelPackage to `com.example.kirogen.customerservice.client.address.data`
-    - Disable generateApiTests, generateModelTests, generateApiDocumentation, generateModelDocumentation
-    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+- [ ] 3. Implement GlobalExceptionHandler (TDD)
+  - [ ] 3.1 Implement CustomerNotFoundException and handler
+    - Write test: when `CustomerNotFoundException` is thrown, response is 404 with Error_Response containing "Not Found" and message "Customer with id '{id}' not found"
+    - Create `CustomerNotFoundException` class and handler method in `GlobalExceptionHandler`
+    - _Requirements: 6.3, 2.2, 4.2, 5.2_
+  - [ ] 3.2 Implement InvalidCustomerIdException and handler
+    - Write test: when `InvalidCustomerIdException` is thrown, response is 400 with Error_Response containing "Bad Request"
+    - Create `InvalidCustomerIdException` class and handler method
+    - _Requirements: 6.2, 2.3, 4.4, 5.3_
+  - [ ] 3.3 Implement MethodArgumentNotValidException handler (validation errors)
+    - Write test: when validation fails on multiple fields, response is 400 with message listing all invalid fields
+    - Implement handler that iterates `FieldError` instances and concatenates messages
+    - _Requirements: 6.2, 10.8_
+  - [ ] 3.4 Implement HttpMessageNotReadableException handler (malformed JSON)
+    - Write test: when request body is malformed JSON, response is 400 with message "Request body is malformed"
+    - Implement handler method
+    - _Requirements: 3.5, 6.2_
+  - [ ] 3.5 Implement HttpMediaTypeNotSupportedException handler
+    - Write test: when Content-Type is not application/json, response is 415 with Error_Response
+    - Implement handler method
+    - _Requirements: 11.3_
+  - [ ] 3.6 Implement HttpMediaTypeNotAcceptableException handler
+    - Write test: when Accept header excludes application/json and `*/*`, response is 406
+    - Implement handler method
+    - _Requirements: 11.4_
+  - [ ] 3.7 Implement catch-all Exception handler
+    - Write test: when unexpected exception occurs, response is 500 with "Internal Server Error" and generic message
+    - Implement catch-all `@ExceptionHandler(Exception.class)` method
+    - _Requirements: 6.4_
+  - [ ] 3.8 Verify all error responses include all five fields with non-null values
+    - Write test asserting timestamp is ISO 8601 UTC format and path matches request URI across all handler methods
+    - _Requirements: 6.1, 6.5_
+  - [ ]* 3.9 Write property test for error response structure
+    - **Property 7: Error responses always contain all required fields**
+    - **Validates: Requirements 6.1, 6.5**
 
-  - [x] 1.4 Configure openapi-generator-maven-plugin with Item Service client execution
-    - Add `ItemServiceApiWebClient` execution: generator `java`, library `webclient`
-    - Set inputSpec to `${project.basedir}/specs/client/item-service-openapi.yaml`
-    - Set apiPackage to `com.example.kirogen.customerservice.client.item.api`
-    - Set modelPackage to `com.example.kirogen.customerservice.client.item.data`
-    - Disable all test and documentation generation flags
-    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
-
-  - [x] 1.5 Verify build compiles successfully with all generated code
-    - Run `mvn compile` and confirm it succeeds with server stubs and both client libraries generated
-    - Verify generated sources appear in `target/generated-sources/openapi/`
-    - Fix any dependency resolution or compilation errors
-    - _Requirements: 1.6, 2.6, 2.7, 3.6, 9.4, 9.5_
-
-- [x] 2. Checkpoint - Ensure build compiles with generated code
+- [ ] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Implement CustomersApiDelegateImpl — List Customers (TDD)
-  - [x] 3.1 Write failing test: listCustomers returns HTTP 200 with two customers
-    - Create `CustomersApiDelegateImplTest` test class
-    - Write test asserting `listCustomers(null, null)` returns ResponseEntity with status 200
-    - Assert the response body is a list with exactly 2 Customer objects
-    - Run test — confirm it fails (Red)
+- [ ] 5. Implement CustomerService (TDD)
+  - [ ] 5.1 Implement listCustomers with hardcoded stub data
+    - Write test: `listCustomers(0, 20)` returns list of two customers (cust-001 Jane Smith, cust-002 John Doe) with all fields populated
+    - Implement service with hardcoded customer map
+    - _Requirements: 1.1_
+  - [ ] 5.2 Implement getCustomer for known and unknown IDs
+    - Write test: `getCustomer("cust-001")` returns Jane Smith's data
+    - Write test: `getCustomer("unknown-id")` throws `CustomerNotFoundException`
+    - Implement lookup logic
+    - _Requirements: 2.1, 2.2_
+  - [ ] 5.3 Implement createCustomer with ID generation
+    - Write test: `createCustomer(validRequest)` returns Customer with id starting with "cust-" and all submitted fields echoed
+    - Implement ID generation (`cust-` + UUID fragment)
+    - _Requirements: 3.1_
+  - [ ] 5.4 Implement updateCustomer for known and unknown IDs
+    - Write test: `updateCustomer("cust-001", validRequest)` returns Customer with id "cust-001" and updated fields
+    - Write test: `updateCustomer("unknown-id", request)` throws `CustomerNotFoundException`
     - _Requirements: 4.1, 4.2_
+  - [ ] 5.5 Implement deleteCustomer for known and unknown IDs
+    - Write test: `deleteCustomer("cust-001")` completes without exception
+    - Write test: `deleteCustomer("unknown-id")` throws `CustomerNotFoundException`
+    - _Requirements: 5.1, 5.2_
 
-  - [x] 3.2 Implement minimum code to pass listCustomers test (Green)
-    - Create `CustomersApiDelegateImpl` class annotated with `@Service` implementing `CustomersApiDelegate`
-    - Override `listCustomers` to return hardcoded list of 2 Customer objects matching OpenAPI spec examples
-    - Customer 1: cust-001, Jane Smith, Ms, +44 7700 900123, jane.smith@example.com, address addr-001
-    - Customer 2: cust-002, John Doe, Mr, +1 555-0199, john.doe@example.com, address addr-002
-    - Run test — confirm it passes
-    - _Requirements: 4.1, 4.2_
-
-  - [x] 3.3 Write failing test: listCustomers response contains all required Customer fields
-    - Assert each Customer in list has non-null id, firstName, lastName, title, phone, email, address
-    - Assert each address has non-null id, nameOrNumber, street, town, postCodeOrZip, country
-    - Run test — confirm it fails (Red), then make it pass (Green)
-    - _Requirements: 4.2_
-
-  - [x] 3.4 Write failing test: listCustomers with page/size params returns same response
-    - Assert `listCustomers(0, 10)` returns identical customer list as `listCustomers(null, null)`
-    - Assert `listCustomers(5, 50)` also returns the same list
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 4.3, 4.4_
-
-  - [x] 3.5 Write property test: pagination parameter invariance (Property 2)
-    - **Property 2: Pagination parameter invariance**
-    - Generate arbitrary valid Integer values for page and size parameters
-    - Assert response always equals the response with null page/null size
-    - Use `@Property(tries = 100)` annotation
-    - **Validates: Requirements 4.3, 4.4**
-
-  - [x] 3.6 Write property test: list response completeness (Property 1)
-    - **Property 1: List response completeness**
-    - Invoke listCustomers and verify every Customer in the response has all required non-null fields
-    - Verify every nested Address has all required non-null fields (id, nameOrNumber, street, town, postCodeOrZip, country)
-    - Use `@Property(tries = 100)` annotation
-    - **Validates: Requirements 4.2**
-
-- [ ] 4. Implement CustomersApiDelegateImpl — Get Customer by ID (TDD)
-  - [x] 4.1 Write failing test: getCustomerById with "cust-001" returns HTTP 200 with correct data
-    - Assert `getCustomerById("cust-001")` returns ResponseEntity with status 200
-    - Assert the response body matches the hardcoded Customer 1 data (Jane Smith)
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 5.1_
-
-  - [-] 4.2 Write failing test: getCustomerById with unknown valid ID returns HTTP 404
-    - Assert `getCustomerById("cust-999")` returns ResponseEntity with status 404
-    - Assert response body contains an Error object with status=404, non-null error, message, and timestamp
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 5.2_
-
-  - [-] 4.3 Write failing test: getCustomerById with invalid format ID returns HTTP 400
-    - Assert `getCustomerById("invalid/id!")` returns ResponseEntity with status 400
-    - Assert response body contains an Error object with status=400, message about invalid format
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 5.3_
-
-  - [~] 4.4 Write property test: unknown customer ID returns 404 (Property 3 — GET)
-    - **Property 3: Unknown customer ID returns 404 (GET)**
-    - Generate arbitrary strings matching `^[a-zA-Z0-9\-]+$` that are not "cust-001" or "cust-002"
-    - Assert getCustomerById returns 404 with non-null Error fields (status, error, message, timestamp)
-    - Use `@Property(tries = 100)` annotation
-    - **Validates: Requirements 5.2**
-
-  - [~] 4.5 Write property test: invalid customer ID format returns 400 (Property 4)
-    - **Property 4: Invalid customer ID format returns 400**
-    - Generate arbitrary strings containing special characters (spaces, slashes, unicode, etc.)
-    - Assert getCustomerById returns 400 with non-null Error fields
-    - Use `@Property(tries = 100)` annotation
-    - **Validates: Requirements 5.3**
-
-- [ ] 5. Implement CustomersApiDelegateImpl — Create Customer (TDD)
-  - [~] 5.1 Write failing test: createCustomer with valid payload returns HTTP 201 with generated ID
-    - Build a valid CustomerCreate object with all required fields
-    - Assert `createCustomer(customerCreate)` returns ResponseEntity with status 201
-    - Assert the response body has a non-null `id` field and all other fields matching the input
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 6.1, 6.2_
-
-  - [~] 5.2 Write failing test: createCustomer with null/missing required fields returns HTTP 400
-    - Construct a CustomerCreate with missing firstName (null)
-    - Assert `createCustomer(invalidPayload)` returns ResponseEntity with status 400
-    - Assert response body contains Error object with status=400
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 6.3_
-
-  - [~] 5.3 Write property test: create returns complete customer with generated ID (Property 5)
-    - **Property 5: Create returns complete customer with generated ID**
-    - Generate arbitrary valid CustomerCreate payloads with all required fields
-    - Assert POST returns 201 with a Customer object containing non-null id and all required fields
-    - Assert the id field was not present in the request
-    - Use `@Property(tries = 100)` annotation
-    - **Validates: Requirements 6.1, 6.2**
-
-- [ ] 6. Implement CustomersApiDelegateImpl — Update Customer (TDD)
-  - [~] 6.1 Write failing test: updateCustomer with known ID "cust-001" returns HTTP 200
-    - Build a valid CustomerCreate object
-    - Assert `updateCustomer("cust-001", customerCreate)` returns ResponseEntity with status 200
-    - Assert the response body has id="cust-001" and all required fields
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 7.1_
-
-  - [~] 6.2 Write failing test: updateCustomer with unknown ID returns HTTP 404
-    - Assert `updateCustomer("cust-999", customerCreate)` returns ResponseEntity with status 404
-    - Assert response body contains Error object with status=404
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 7.2_
-
-  - [~] 6.3 Write failing test: updateCustomer with invalid body returns HTTP 400
-    - Construct a CustomerCreate with null required fields
-    - Assert `updateCustomer("cust-001", invalidPayload)` returns ResponseEntity with status 400
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 7.3_
-
-  - [~] 6.4 Write property test: unknown customer ID returns 404 (Property 3 — PUT)
-    - **Property 3: Unknown customer ID returns 404 (PUT)**
-    - Generate arbitrary strings matching `^[a-zA-Z0-9\-]+$` that are not "cust-001" or "cust-002"
-    - Assert updateCustomer returns 404 with non-null Error fields
-    - Use `@Property(tries = 100)` annotation
-    - **Validates: Requirements 7.2**
-
-- [ ] 7. Implement CustomersApiDelegateImpl — Delete Customer (TDD)
-  - [~] 7.1 Write failing test: deleteCustomer with known ID "cust-001" returns HTTP 204
-    - Assert `deleteCustomer("cust-001")` returns ResponseEntity with status 204
-    - Assert the response body is null/empty
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 8.1_
-
-  - [~] 7.2 Write failing test: deleteCustomer with unknown ID returns HTTP 404
-    - Assert `deleteCustomer("cust-999")` returns ResponseEntity with status 404
-    - Assert response body contains Error object with status=404, message mentioning the customer ID
-    - Run test — confirm it fails (Red), then implement (Green)
-    - _Requirements: 8.2_
-
-  - [~] 7.3 Write property test: unknown customer ID returns 404 (Property 3 — DELETE)
-    - **Property 3: Unknown customer ID returns 404 (DELETE)**
-    - Generate arbitrary strings matching `^[a-zA-Z0-9\-]+$` that are not "cust-001" or "cust-002"
-    - Assert deleteCustomer returns 404 with non-null Error fields
-    - Use `@Property(tries = 100)` annotation
-    - **Validates: Requirements 8.2**
-
-- [~] 8. Checkpoint - Ensure all unit and property tests pass
-  - Ensure all tests pass, ask the user if questions arise.
-
-- [ ] 9. Integration tests — full HTTP stack via MockMvc
-  - [~] 9.1 Write integration test: GET /customers returns 200 with JSON array
-    - Use `@SpringBootTest` and `MockMvc` to send GET request to `/customers`
-    - Assert HTTP 200 status, content-type `application/json`, response body is a JSON array with 2 elements
-    - Verify JSON structure matches OpenAPI Customer schema (all required fields present)
-    - _Requirements: 4.1, 4.2_
-
-  - [~] 9.2 Write integration test: GET /customers/{customerId} returns correct responses
-    - Assert GET `/customers/cust-001` returns 200 with correct Customer JSON
-    - Assert GET `/customers/cust-999` returns 404 with Error JSON
-    - Assert GET `/customers/invalid!id` returns 400 with Error JSON
+- [ ] 6. Implement CustomerController (TDD)
+  - [ ] 6.1 Implement GET /customers endpoint with pagination parameters
+    - Write MockMvc test: GET `/customers` returns 200 with JSON array of two customers
+    - Write MockMvc test: GET `/customers?page=0&size=20` returns 200
+    - Implement `@GetMapping` with `@RequestParam` for page and size
+    - _Requirements: 1.1, 1.2, 1.3_
+  - [ ] 6.2 Implement pagination parameter validation
+    - Write MockMvc test: GET `/customers?size=0` returns 400 with Error_Response
+    - Write MockMvc test: GET `/customers?size=101` returns 400 with Error_Response
+    - Write MockMvc test: GET `/customers?page=-1` returns 400 with Error_Response
+    - Write MockMvc test: GET `/customers?page=abc` returns 400 with Error_Response
+    - Implement validation via `@Min`/`@Max` constraints or manual validation
+    - _Requirements: 1.4, 1.5, 1.6_
+  - [ ] 6.3 Implement GET /customers/{customerId} with ID format validation
+    - Write MockMvc test: GET `/customers/cust-001` returns 200 with Jane Smith data
+    - Write MockMvc test: GET `/customers/invalid@id` returns 400 with Error_Response
+    - Implement path variable validation using regex pattern `^[a-zA-Z0-9\\-]+$`
+    - _Requirements: 2.1, 2.3_
+  - [ ] 6.4 Implement POST /customers endpoint
+    - Write MockMvc test: POST `/customers` with valid body returns 201 with generated id
+    - Write MockMvc test: POST `/customers` with missing firstName returns 400
+    - Write MockMvc test: POST `/customers` with invalid email returns 400
+    - Implement `@PostMapping` with `@Valid @RequestBody CustomerCreate`
+    - _Requirements: 3.1, 3.2, 3.4_
+  - [ ] 6.5 Implement PUT /customers/{customerId} endpoint
+    - Write MockMvc test: PUT `/customers/cust-001` with valid body returns 200
+    - Write MockMvc test: PUT `/customers/unknown-id` returns 404
+    - Write MockMvc test: PUT `/customers/cust-001` with missing fields returns 400
+    - Implement `@PutMapping` with `@Valid @RequestBody` and ID validation
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+  - [ ] 6.6 Implement DELETE /customers/{customerId} endpoint
+    - Write MockMvc test: DELETE `/customers/cust-001` returns 204 with no body
+    - Write MockMvc test: DELETE `/customers/unknown-id` returns 404
+    - Write MockMvc test: DELETE `/customers/invalid@id` returns 400
+    - Implement `@DeleteMapping` with ID validation
     - _Requirements: 5.1, 5.2, 5.3_
+  - [ ] 6.7 Implement content-type handling
+    - Write MockMvc test: POST with Content-Type `text/xml` returns 415
+    - Write MockMvc test: GET with Accept `text/xml` (excluding `application/json` and `*/*`) returns 406
+    - Write MockMvc test: response bodies have Content-Type `application/json`
+    - Ensure `produces = "application/json"` and `consumes = "application/json"` on relevant endpoints
+    - _Requirements: 11.1, 11.2, 11.3, 11.4_
+  - [ ]* 6.8 Write property tests for pagination validation
+    - **Property 1: Invalid pagination range returns 400**
+    - **Property 2: Non-integer pagination parameter returns 400**
+    - **Validates: Requirements 1.4, 1.5, 1.6**
+  - [ ]* 6.9 Write property tests for customer ID validation
+    - **Property 3: Unknown valid-format customer ID returns 404**
+    - **Property 4: Invalid-format customer ID returns 400**
+    - **Validates: Requirements 2.2, 2.3, 4.2, 4.4, 5.2, 5.3**
+  - [ ]* 6.10 Write property tests for customer creation
+    - **Property 5: Valid customer creation echoes all fields**
+    - **Property 6: Invalid email format returns 400**
+    - **Validates: Requirements 3.1, 3.4, 10.3**
+  - [ ]* 6.11 Write property tests for validation
+    - **Property 11: Blank required field produces 400**
+    - **Property 12: Multiple validation failures reported together**
+    - **Validates: Requirements 10.1, 10.2, 10.5, 10.6, 10.7, 10.8**
+  - [ ]* 6.12 Write property tests for content-type handling
+    - **Property 13: Responses with body have JSON Content-Type**
+    - **Property 14: Unsupported Content-Type returns 415**
+    - **Property 15: Non-acceptable Accept header returns 406**
+    - **Validates: Requirements 11.1, 11.3, 11.4**
 
-  - [~] 9.3 Write integration test: POST /customers returns 201
-    - Send POST `/customers` with valid CustomerCreate JSON body
-    - Assert HTTP 201 status and response body with generated `id` field
-    - _Requirements: 6.1, 6.2_
+- [ ] 7. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
 
-  - [~] 9.4 Write integration test: PUT /customers/{customerId} returns correct responses
-    - Assert PUT `/customers/cust-001` with valid body returns 200
-    - Assert PUT `/customers/cust-999` with valid body returns 404
-    - _Requirements: 7.1, 7.2_
+- [ ] 8. Implement AddressServiceClient (TDD)
+  - [ ] 8.1 Implement ClientConfig with WebClient beans
+    - Write test: Spring context loads with WebClient beans configured for address and item service base URLs
+    - Implement `ClientConfig` with `@Configuration` and `@Bean` methods reading from `client.address-service.base-url` and `client.item-service.base-url`
+    - _Requirements: 7.1, 8.1_
+  - [ ] 8.2 Implement AddressServiceClient CRUD methods
+    - Write MockWebServer test: `listAddresses(0, 20)` sends GET to `/addresses?page=0&size=20` and returns Flux<Address>
+    - Write MockWebServer test: `getAddress("addr-001")` sends GET to `/addresses/addr-001` and returns Mono<Address>
+    - Write MockWebServer test: `createAddress(body)` sends POST to `/addresses` and returns Mono<Address>
+    - Write MockWebServer test: `updateAddress("addr-001", body)` sends PUT to `/addresses/addr-001` and returns Mono<Address>
+    - Write MockWebServer test: `deleteAddress("addr-001")` sends DELETE to `/addresses/addr-001` and returns Mono<Void>
+    - Implement all methods using injected WebClient
+    - _Requirements: 7.2, 7.3, 7.4, 7.5, 7.6_
+  - [ ] 8.3 Implement error propagation for AddressServiceClient
+    - Write MockWebServer test: when Address Service returns 404, client emits reactive error with status code
+    - Write MockWebServer test: when Address Service returns 500, client emits reactive error with status code
+    - Implement `.onStatus()` handling in WebClient calls
+    - _Requirements: 7.7_
+  - [ ]* 8.4 Write property test for Address Service Client error propagation
+    - **Property 8: Address Service Client propagates HTTP errors**
+    - **Validates: Requirements 7.7**
 
-  - [~] 9.5 Write integration test: DELETE /customers/{customerId} returns correct responses
-    - Assert DELETE `/customers/cust-001` returns 204 with no body
-    - Assert DELETE `/customers/cust-999` returns 404 with Error JSON
-    - _Requirements: 8.1, 8.2_
+- [ ] 9. Implement ItemServiceClient (TDD)
+  - [ ] 9.1 Implement ItemServiceClient CRUD methods
+    - Write MockWebServer test: `listItems(0, 20, null)` sends GET to `/items?page=0&size=20` and returns Flux<Item>
+    - Write MockWebServer test: `listItems(0, 20, true)` sends GET to `/items?page=0&size=20&inStock=true`
+    - Write MockWebServer test: `getItem("item-001")` sends GET to `/items/item-001` and returns Mono<Item>
+    - Write MockWebServer test: `createItem(body)` sends POST to `/items` and returns Mono<Item>
+    - Write MockWebServer test: `updateItem("item-001", body)` sends PUT to `/items/item-001` and returns Mono<Item>
+    - Write MockWebServer test: `deleteItem("item-001")` sends DELETE to `/items/item-001` and returns Mono<Void>
+    - Implement all methods using injected WebClient
+    - _Requirements: 8.1, 8.2, 8.3, 8.4_
+  - [ ] 9.2 Implement error propagation for ItemServiceClient
+    - Write MockWebServer test: when Item Service returns 4xx/5xx, client emits reactive error with status code
+    - Implement `.onStatus()` handling in WebClient calls
+    - _Requirements: 8.3_
 
-- [~] 10. Final checkpoint - Ensure all tests pass and build succeeds
-  - Run `mvn verify` to confirm full build including all tests passes
+- [ ] 10. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
@@ -234,11 +226,11 @@ This plan implements the Customer Service REST API using the openapi-generator-m
 - Tasks marked with `*` are optional and can be skipped for faster MVP
 - Each task references specific requirements for traceability
 - Checkpoints ensure incremental validation
-- Property tests validate universal correctness properties from the design document using jqwik
+- Property tests validate universal correctness properties using jqwik
 - Unit tests validate specific examples and edge cases
-- The TDD cycle (Red-Green-Refactor) is applied within each task — write a failing test first, then implement minimum code
-- Generated code from openapi-generator-maven-plugin lives in `target/generated-sources/openapi/` and must not be committed to version control
-- The delegate pattern separates concerns: generated controllers handle routing/validation, our delegate handles business logic
+- All tasks follow strict TDD: write failing test first, then minimal implementation
+- The execution order (Models → ExceptionHandler → Service → Controller → Clients) prioritizes components with the most edge cases first
+- MockMvc is used for controller integration tests; MockWebServer for client tests
 
 ## Task Dependency Graph
 
@@ -246,21 +238,17 @@ This plan implements the Customer Service REST API using the openapi-generator-m
 {
   "waves": [
     { "id": 0, "tasks": ["1.1", "1.2"] },
-    { "id": 1, "tasks": ["1.3", "1.4"] },
-    { "id": 2, "tasks": ["1.5"] },
-    { "id": 3, "tasks": ["3.1"] },
-    { "id": 4, "tasks": ["3.2"] },
-    { "id": 5, "tasks": ["3.3", "3.4"] },
-    { "id": 6, "tasks": ["3.5", "3.6", "4.1"] },
-    { "id": 7, "tasks": ["4.2", "4.3"] },
-    { "id": 8, "tasks": ["4.4", "4.5", "5.1"] },
-    { "id": 9, "tasks": ["5.2"] },
-    { "id": 10, "tasks": ["5.3", "6.1"] },
-    { "id": 11, "tasks": ["6.2", "6.3"] },
-    { "id": 12, "tasks": ["6.4", "7.1"] },
-    { "id": 13, "tasks": ["7.2"] },
-    { "id": 14, "tasks": ["7.3"] },
-    { "id": 15, "tasks": ["9.1", "9.2", "9.3", "9.4", "9.5"] }
+    { "id": 1, "tasks": ["2.1", "2.2", "2.5", "2.6"] },
+    { "id": 2, "tasks": ["2.3", "2.4", "2.7", "2.8"] },
+    { "id": 3, "tasks": ["3.1", "3.2", "3.4", "3.5", "3.6", "3.7"] },
+    { "id": 4, "tasks": ["3.3", "3.8", "3.9"] },
+    { "id": 5, "tasks": ["5.1", "5.2", "5.3", "5.4", "5.5"] },
+    { "id": 6, "tasks": ["6.1", "6.2", "6.3"] },
+    { "id": 7, "tasks": ["6.4", "6.5", "6.6", "6.7"] },
+    { "id": 8, "tasks": ["6.8", "6.9", "6.10", "6.11", "6.12"] },
+    { "id": 9, "tasks": ["8.1"] },
+    { "id": 10, "tasks": ["8.2", "9.1"] },
+    { "id": 11, "tasks": ["8.3", "8.4", "9.2"] }
   ]
 }
 ```

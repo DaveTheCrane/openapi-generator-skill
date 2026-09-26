@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites><testsuite name="tasklist-eval" tests="2" failures="2" errors="0" time="0.001" timestamp="2026-09-26T13:42:03.357578+00:00"><properties><property name="tasklist" value="test/tasklist-eval/samples/skill-not-present--tasks.md" /><property name="tool" value="tasklist-eval" /></properties><testcase name="generator-in-pom" classname="tasklist-eval"><failure message="pom.xml/build is modified but the OpenAPI generator is never mentioned — code appears to be hand-written instead of generated." type="binary" /><system-out>verdict: fail
+summary: pom.xml/build is modified but the OpenAPI generator is never mentioned — code appears to be hand-written instead of generated.
+evidence: Task 1.1: pom/build config — matched 'pom.xml'</system-out></testcase><testcase name="generated-code-usage" classname="tasklist-eval"><failure message="0/3 in-scope areas consume generated code (score 0.00). generated=[], handcoded=['address-client', 'item-client', 'server']." type="graded" /><system-out>verdict: fail
+score: 0.0000
+summary: 0/3 in-scope areas consume generated code (score 0.00). generated=[], handcoded=['address-client', 'item-client', 'server'].
+evidence: [server] handcoded — Task 1.2 matched 'Create `com.example.kirogen.customerservice'.
+evidence: [address-client] handcoded — Task 4.2 matched 'ServiceClient` with `@Component'.
+evidence: [item-client] handcoded — Task 4.3 matched 'ServiceClient` with `@Component'.</system-out></testcase></testsuite></testsuites>

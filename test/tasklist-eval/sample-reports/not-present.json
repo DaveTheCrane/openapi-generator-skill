@@ -1,0 +1,48 @@
+{
+  "tool": "tasklist-eval",
+  "metadata": {
+    "tasklist": "test/tasklist-eval/samples/skill-not-present--tasks.md",
+    "timestamp": "2026-09-26T13:42:03.268312+00:00",
+    "duration_ms": 1
+  },
+  "overall": "fail",
+  "results": [
+    {
+      "evaluator_id": "generator-in-pom",
+      "kind": "binary",
+      "verdict": "fail",
+      "score": null,
+      "summary": "pom.xml/build is modified but the OpenAPI generator is never mentioned \u2014 code appears to be hand-written instead of generated.",
+      "evidence": [
+        "Task 1.1: pom/build config \u2014 matched 'pom.xml'"
+      ],
+      "details": {
+        "pom_modified": true,
+        "generator_mentioned": false,
+        "matches": [
+          "pom.xml"
+        ]
+      }
+    },
+    {
+      "evaluator_id": "generated-code-usage",
+      "kind": "graded",
+      "verdict": "fail",
+      "score": 0.0,
+      "summary": "0/3 in-scope areas consume generated code (score 0.00). generated=[], handcoded=['address-client', 'item-client', 'server'].",
+      "evidence": [
+        "[server] handcoded \u2014 Task 1.2 matched 'Create `com.example.kirogen.customerservice'.",
+        "[address-client] handcoded \u2014 Task 4.2 matched 'ServiceClient` with `@Component'.",
+        "[item-client] handcoded \u2014 Task 4.3 matched 'ServiceClient` with `@Component'."
+      ],
+      "details": {
+        "areas": {
+          "server": "handcoded",
+          "address-client": "handcoded",
+          "item-client": "handcoded"
+        },
+        "score": 0.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+Evaluating tasklist: test/tasklist-eval/samples/skill-not-present--tasks.md
+
+  ✗ generator-in-pom  [binary]  FAIL
+      pom.xml/build is modified but the OpenAPI generator is never mentioned — code appears to be hand-written instead of generated.
+        - Task 1.1: pom/build config — matched 'pom.xml'
+
+  ✗ generated-code-usage  [graded]  FAIL  score: 0.00
+      0/3 in-scope areas consume generated code (score 0.00). generated=[], handcoded=['address-client', 'item-client', 'server'].
+        - [server] handcoded — Task 1.2 matched 'Create `com.example.kirogen.customerservice'.
+        - [address-client] handcoded — Task 4.2 matched 'ServiceClient` with `@Component'.
+        - [item-client] handcoded — Task 4.3 matched 'ServiceClient` with `@Component'.
+
+Overall: FAIL
+
+Tasklist: test/tasklist-eval/samples/skill-not-present--tasks.md
+Evaluators: 2
+Duration: 1 ms
+Timestamp: 2026-09-26T13:42:03.176530+00:00
