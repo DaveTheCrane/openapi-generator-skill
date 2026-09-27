@@ -81,6 +81,9 @@ def run(
                 evidence=[f"Error: {type(exc).__name__}: {exc}"],
                 details={"error": str(exc)},
             )
+        # Stamp the plugin group so evaluators need not know about it.
+        if not result.group:
+            result.group = getattr(evaluator, "plugin_group", "") or ""
         results.append(result)
 
     duration_ms = int((time.perf_counter() - wall_start) * 1000)

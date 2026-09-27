@@ -115,3 +115,42 @@ def test_duration_non_negative():
     summary = run(TL, [_StubBinary(Verdict.PASS)], _Cfg())
     assert summary.duration_ms >= 0
     assert summary.tasklist_path == "dummy.md"
+
+
+# --------------------------------------------------------------------------- #
+# Plugin group stamping                                                         #
+# --------------------------------------------------------------------------- #
+
+
+class _GroupedBinary(_StubBinary):
+    plugin_group = "g1"
+
+
+class _PresetGroup(_StubBinary):
+    plugin_group = "g1"
+
+    def evaluate(self, tasklist, config):
+        result = super().evaluate(tasklist, config)
+        result.group = "preset"
+        return result
+
+
+class _GroupedExploding(_Exploding):
+    plugin_group = "g1"
+
+
+def test_runner_stamps_plugin_group():
+    summary = run(TL, [_GroupedBinary(Verdict.PASS)], _Cfg())
+    assert summary.results[0].group == "g1"
+
+
+def test_runner_keeps_preset_group():
+    summary = run(TL, [_PresetGroup(Verdict.PASS)], _Cfg())
+    assert summary.results[0].group == "preset"
+
+
+def test_runner_stamps_group_on_error_result():
+    summary = run(TL, [_GroupedExploding()], _Cfg())
+    err = summary.results[0]
+    assert err.verdict is Verdict.FAIL
+    assert err.group == "g1"

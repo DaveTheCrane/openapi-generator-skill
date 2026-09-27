@@ -156,3 +156,49 @@ def test_report_file_routing_junit_parseable(tmp_path):
     report(_summary(Verdict.FAIL), cfg)
     tree = ET.parse(str(out_file))  # raises if malformed
     assert tree.getroot().tag == "testsuites"
+
+
+# --------------------------------------------------------------------------- #
+# Plugin group in reports                                                       #
+# --------------------------------------------------------------------------- #
+
+
+def _grouped_summary():
+    return RunSummary(
+        tasklist_path="x.md",
+        results=[
+            EvaluationResult(
+                evaluator_id="grouped-eval",
+                kind=EvaluatorKind.BINARY,
+                verdict=Verdict.PASS,
+                score=None,
+                summary="grouped",
+                group="openapi-generator",
+            ),
+            EvaluationResult(
+                evaluator_id="ungrouped-eval",
+                kind=EvaluatorKind.BINARY,
+                verdict=Verdict.PASS,
+                score=None,
+                summary="ungrouped",
+            ),
+        ],
+        overall_verdict=Verdict.PASS,
+        duration_ms=1,
+    )
+
+
+def test_json_includes_group(capsys):
+    report(_grouped_summary(), _Cfg(report_format="json"))
+    doc = json.loads(capsys.readouterr().out)
+    by_id = {r["evaluator_id"]: r for r in doc["results"]}
+    assert by_id["grouped-eval"]["group"] == "openapi-generator"
+    assert by_id["ungrouped-eval"]["group"] == ""
+
+
+def test_junit_classname_reflects_group(capsys):
+    report(_grouped_summary(), _Cfg(report_format="junit"))
+    root = ET.fromstring(capsys.readouterr().out)
+    cases = {c.get("name"): c for c in root.find("testsuite").findall("testcase")}
+    assert cases["grouped-eval"].get("classname") == "tasklist-eval.openapi-generator"
+    assert cases["ungrouped-eval"].get("classname") == "tasklist-eval"

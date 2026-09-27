@@ -2,16 +2,30 @@
 
 A small id → evaluator-instance registry. The runner asks the registry for the
 active evaluator set (all registered by default), or a subset selected by id via
-the ``--evaluators`` config option. New evaluators can be added by calling
-:func:`register` without touching the framework core.
+the ``--evaluators`` config option.
+
+The default registry is populated from plugin folders (see
+:mod:`tasklist_eval.plugins`): by default ``<test/tasklist-eval>/evaluators``,
+overridable via the ``TASKLIST_EVAL_PLUGIN_DIRS`` environment variable
+(``os.pathsep``-separated). The registry is built before argparse runs, which
+is why the override is environment-only. Evaluators can also be added
+programmatically by calling :meth:`EvaluatorRegistry.register`.
 """
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 from .evaluators.base import Evaluator
-from .evaluators.generated_code_usage import GeneratedCodeUsageEvaluator
-from .evaluators.generator_in_pom import GeneratorInPomEvaluator
 from .exceptions import ConfigError
+from .plugins import load_plugin_dirs
+
+#: Bundled plugin root: ``test/tasklist-eval/evaluators`` (sibling of the package).
+DEFAULT_PLUGIN_DIR = Path(__file__).resolve().parent.parent / "evaluators"
+
+#: Environment variable overriding the plugin roots (``os.pathsep``-separated).
+PLUGIN_DIRS_ENV = "TASKLIST_EVAL_PLUGIN_DIRS"
 
 
 class EvaluatorRegistry:
@@ -37,6 +51,13 @@ class EvaluatorRegistry:
         """
         return {
             eid: getattr(ev, "description", "") or ""
+            for eid, ev in self._evaluators.items()
+        }
+
+    def groups(self) -> dict[str, str]:
+        """Return an ``id -> plugin_group`` map (empty string when ungrouped)."""
+        return {
+            eid: getattr(ev, "plugin_group", "") or ""
             for eid, ev in self._evaluators.items()
         }
 
@@ -68,9 +89,27 @@ class EvaluatorRegistry:
         return self.get(ids)
 
 
-def build_default_registry() -> EvaluatorRegistry:
-    """Return a registry pre-populated with the built-in evaluators."""
+def _plugin_dirs_from_env() -> list[str] | None:
+    """Return the ``TASKLIST_EVAL_PLUGIN_DIRS`` entries, or None when unset/blank."""
+    raw = os.environ.get(PLUGIN_DIRS_ENV, "")
+    dirs = [d for d in raw.split(os.pathsep) if d.strip()]
+    return dirs or None
+
+
+def build_default_registry(plugin_dirs: list[str] | None = None) -> EvaluatorRegistry:
+    """Return a registry populated with every evaluator found in the plugin dirs.
+
+    When *plugin_dirs* is None, ``TASKLIST_EVAL_PLUGIN_DIRS`` is used if set
+    (it replaces the default), otherwise :data:`DEFAULT_PLUGIN_DIR`.
+
+    Raises
+    ------
+    PluginError
+        If a plugin directory is missing or a plugin cannot be loaded.
+    """
+    if plugin_dirs is None:
+        plugin_dirs = _plugin_dirs_from_env() or [str(DEFAULT_PLUGIN_DIR)]
     registry = EvaluatorRegistry()
-    registry.register(GeneratorInPomEvaluator())
-    registry.register(GeneratedCodeUsageEvaluator())
+    for evaluator in load_plugin_dirs(plugin_dirs):
+        registry.register(evaluator)
     return registry

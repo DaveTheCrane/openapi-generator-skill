@@ -11,3 +11,7 @@ class ConfigError(TasklistEvalError):
 
 class TasklistParseError(TasklistEvalError):
     """Raised when a tasklist file cannot be read or is empty/unparseable."""
+
+
+class PluginError(TasklistEvalError):
+    """Raised when evaluator plugins cannot be discovered, imported, or registered."""

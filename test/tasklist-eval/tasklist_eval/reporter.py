@@ -92,6 +92,7 @@ def _render_json(summary: RunSummary, config) -> str:
         "results": [
             {
                 "evaluator_id": r.evaluator_id,
+                "group": r.group or "",
                 "kind": r.kind.value,
                 "verdict": r.verdict.value,
                 "score": r.score,
@@ -113,6 +114,11 @@ def _system_out_text(r: EvaluationResult) -> str:
     for bullet in r.evidence:
         parts.append(f"evidence: {bullet}")
     return "\n".join(parts)
+
+
+def _classname(r: EvaluationResult) -> str:
+    """JUnit classname: ``tasklist-eval.<group>`` when grouped, else ``tasklist-eval``."""
+    return f"{_TOOL_NAME}.{r.group}" if r.group else _TOOL_NAME
 
 
 def _render_junit(summary: RunSummary, config) -> str:
@@ -149,7 +155,7 @@ def _render_junit(summary: RunSummary, config) -> str:
         testcase = ET.SubElement(
             testsuite,
             "testcase",
-            {"name": r.evaluator_id, "classname": _TOOL_NAME},
+            {"name": r.evaluator_id, "classname": _classname(r)},
         )
         # PARTIAL is not a JUnit-native state → treated as passing; the score and
         # summary live in <system-out> below. Only FAIL emits a <failure>.

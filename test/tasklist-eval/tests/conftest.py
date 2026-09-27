@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -18,6 +19,20 @@ if _PACKAGE_ROOT not in sys.path:
     sys.path.insert(0, _PACKAGE_ROOT)
 
 _SAMPLES_DIR = os.path.join(_PACKAGE_ROOT, "samples")
+
+# Plugin evaluators live outside the package and are loaded by path.
+PLUGIN_ROOT = Path(__file__).resolve().parent.parent / "evaluators"
+OPENAPI_PLUGIN_DIR = PLUGIN_ROOT / "openapi-generator"
+
+
+@pytest.fixture
+def plugin_root() -> Path:
+    return PLUGIN_ROOT
+
+
+@pytest.fixture
+def openapi_plugin_dir() -> Path:
+    return OPENAPI_PLUGIN_DIR
 
 
 @pytest.fixture

@@ -79,6 +79,7 @@ class EvaluationResult:
     summary: str
     evidence: list[str] = field(default_factory=list)
     details: dict = field(default_factory=dict)
+    group: str = ""                      # plugin group; set by the runner
 
 
 @dataclass

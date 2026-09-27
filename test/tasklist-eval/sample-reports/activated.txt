@@ -1,19 +1,19 @@
-Evaluating tasklist: test/tasklist-eval/samples/skill-present-and-activated--tasks.md
+Evaluating tasklist: samples/skill-present-and-activated--tasks.md
+
+  ✓ generated-code-usage  [graded]  PASS  score: 1.00
+      3/3 in-scope areas classified generated (score 1.00). generated=['address-client', 'item-client', 'server'], handcoded=[].
+        - [server] generated — Task 2 matched 'openapi-generator' (generated)
+        - [address-client] generated — Task 2 matched 'openapi-generator' (generated)
+        - [item-client] generated — Task 2 matched 'openapi-generator' (generated)
 
   ✓ generator-in-pom  [binary]  PASS
       pom.xml is modified to add the OpenAPI generator (openapi-generator plugin detected).
-        - Task 2: pom/build config — matched 'pom.xml'
-        - Task 2: generator mention — matched 'openapi-generator-maven-plugin'
-
-  ✓ generated-code-usage  [graded]  PASS  score: 1.00
-      3/3 in-scope areas consume generated code (score 1.00). generated=['address-client', 'item-client', 'server'], handcoded=[].
-        - [server] generated — Task 2 matched 'openapi-generator'.
-        - [address-client] generated — Task 2 matched 'openapi-generator'.
-        - [item-client] generated — Task 2 matched 'openapi-generator'.
+        - Task 2: pom-modified — matched 'pom.xml'
+        - Task 2: generator-mentioned — matched 'openapi-generator-maven-plugin'
 
 Overall: PASS
 
-Tasklist: test/tasklist-eval/samples/skill-present-and-activated--tasks.md
+Tasklist: samples/skill-present-and-activated--tasks.md
 Evaluators: 2
 Duration: 0 ms
-Timestamp: 2026-09-26T13:42:02.911259+00:00
+Timestamp: 2026-09-26T19:39:55.920565+00:00

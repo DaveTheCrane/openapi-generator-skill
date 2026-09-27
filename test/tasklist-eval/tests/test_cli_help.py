@@ -111,3 +111,24 @@ def test_registry_descriptions_maps_ids_to_text():
     descriptions = build_default_registry().descriptions()
     assert set(descriptions) == set(VALID_IDS)
     assert all(descriptions[i] for i in VALID_IDS)
+
+
+def test_help_mentions_plugin_dirs_env_var():
+    """The epilog documents the TASKLIST_EVAL_PLUGIN_DIRS override."""
+    parser = _build_parser(valid_evaluator_ids=VALID_IDS)
+    help_text = _normalize(parser.format_help())
+    assert "TASKLIST_EVAL_PLUGIN_DIRS" in help_text
+
+
+def test_load_config_help_shows_evaluator_group(tmp_path, capsys):
+    """When groups are provided, each evaluator id is listed with its group."""
+    with pytest.raises(SystemExit) as exc:
+        load_config(
+            argv=["--help"],
+            cwd=str(tmp_path),
+            valid_evaluator_ids=["generator-in-pom"],
+            evaluator_groups={"generator-in-pom": "openapi-generator"},
+        )
+    assert exc.value.code == 0
+    out = _normalize(capsys.readouterr().out)
+    assert "generator-in-pom (openapi-generator)" in out

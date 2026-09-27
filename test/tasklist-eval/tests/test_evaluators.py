@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
-from tasklist_eval.evaluators.generated_code_usage import GeneratedCodeUsageEvaluator
-from tasklist_eval.evaluators.generator_in_pom import GeneratorInPomEvaluator
 from tasklist_eval.models import EvaluatorKind, TaskList, Verdict
 from tasklist_eval.parser import parse_tasklist
+from tasklist_eval.plugins import load_plugin_module
+
+_PLUGIN_DIR = Path(__file__).resolve().parent.parent / "evaluators" / "openapi-generator"
+GeneratorInPomEvaluator = load_plugin_module(_PLUGIN_DIR / "generator_in_pom.py").GeneratorInPomEvaluator
+GeneratedCodeUsageEvaluator = load_plugin_module(_PLUGIN_DIR / "generated_code_usage.py").GeneratedCodeUsageEvaluator
 
 
 @dataclass
@@ -30,8 +34,8 @@ def test_generator_in_pom_activated_pass(activated_path):
     assert r.kind is EvaluatorKind.BINARY
     assert r.verdict is Verdict.PASS
     assert r.score is None
-    assert r.details["pom_modified"] is True
-    assert r.details["generator_mentioned"] is True
+    assert r.details["sets"]["pom-modified"]["matched"] is True
+    assert r.details["sets"]["generator-mentioned"]["matched"] is True
 
 
 def test_generator_in_pom_not_present_fail(not_present_path):
@@ -39,16 +43,18 @@ def test_generator_in_pom_not_present_fail(not_present_path):
     r = GeneratorInPomEvaluator().evaluate(tl, CFG)
     assert r.verdict is Verdict.FAIL
     # pom is edited but the generator is never mentioned.
-    assert r.details["pom_modified"] is True
-    assert r.details["generator_mentioned"] is False
+    assert r.details["sets"]["pom-modified"]["matched"] is True
+    assert r.details["sets"]["generator-mentioned"]["matched"] is False
+    assert r.details["missing"] == ["generator-mentioned"]
 
 
 def test_generator_in_pom_failed_activate_fail(failed_activate_path):
     tl = parse_tasklist(failed_activate_path)
     r = GeneratorInPomEvaluator().evaluate(tl, CFG)
     assert r.verdict is Verdict.FAIL
-    assert r.details["pom_modified"] is True
-    assert r.details["generator_mentioned"] is False
+    assert r.details["sets"]["pom-modified"]["matched"] is True
+    assert r.details["sets"]["generator-mentioned"]["matched"] is False
+    assert r.details["missing"] == ["generator-mentioned"]
 
 
 def test_generator_in_pom_evidence_cites_tasks(activated_path):

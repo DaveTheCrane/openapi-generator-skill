@@ -18,11 +18,16 @@ class Evaluator(ABC):
 
     Subclasses set the class attributes ``id`` and ``kind`` (and optionally a
     short human-readable ``description``) and implement :meth:`evaluate`.
+
+    ``plugin_group`` names the plugin folder the evaluator was loaded from
+    (e.g. ``"openapi-generator"``). The plugin loader fills it in; evaluators
+    normally leave it empty.
     """
 
     id: str = ""
     kind: EvaluatorKind = EvaluatorKind.BINARY
     description: str = ""
+    plugin_group: str = ""
 
     @abstractmethod
     def evaluate(self, tasklist: TaskList, config) -> EvaluationResult:

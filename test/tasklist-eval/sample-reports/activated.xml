@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites><testsuite name="tasklist-eval" tests="2" failures="0" errors="0" time="0.000" timestamp="2026-09-26T13:42:03.087330+00:00"><properties><property name="tasklist" value="test/tasklist-eval/samples/skill-present-and-activated--tasks.md" /><property name="tool" value="tasklist-eval" /></properties><testcase name="generator-in-pom" classname="tasklist-eval"><system-out>verdict: pass
-summary: pom.xml is modified to add the OpenAPI generator (openapi-generator plugin detected).
-evidence: Task 2: pom/build config — matched 'pom.xml'
-evidence: Task 2: generator mention — matched 'openapi-generator-maven-plugin'</system-out></testcase><testcase name="generated-code-usage" classname="tasklist-eval"><system-out>verdict: pass
+<testsuites><testsuite name="tasklist-eval" tests="2" failures="0" errors="0" time="0.000" timestamp="2026-09-26T19:39:56.108240+00:00"><properties><property name="tasklist" value="samples/skill-present-and-activated--tasks.md" /><property name="tool" value="tasklist-eval" /></properties><testcase name="generated-code-usage" classname="tasklist-eval.openapi-generator"><system-out>verdict: pass
 score: 1.0000
-summary: 3/3 in-scope areas consume generated code (score 1.00). generated=['address-client', 'item-client', 'server'], handcoded=[].
-evidence: [server] generated — Task 2 matched 'openapi-generator'.
-evidence: [address-client] generated — Task 2 matched 'openapi-generator'.
-evidence: [item-client] generated — Task 2 matched 'openapi-generator'.</system-out></testcase></testsuite></testsuites>
+summary: 3/3 in-scope areas classified generated (score 1.00). generated=['address-client', 'item-client', 'server'], handcoded=[].
+evidence: [server] generated — Task 2 matched 'openapi-generator' (generated)
+evidence: [address-client] generated — Task 2 matched 'openapi-generator' (generated)
+evidence: [item-client] generated — Task 2 matched 'openapi-generator' (generated)</system-out></testcase><testcase name="generator-in-pom" classname="tasklist-eval.openapi-generator"><system-out>verdict: pass
+summary: pom.xml is modified to add the OpenAPI generator (openapi-generator plugin detected).
+evidence: Task 2: pom-modified — matched 'pom.xml'
+evidence: Task 2: generator-mentioned — matched 'openapi-generator-maven-plugin'</system-out></testcase></testsuite></testsuites>

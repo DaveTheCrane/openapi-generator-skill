@@ -64,6 +64,8 @@ def _build_epilog(evaluator_help: str | None = None) -> str:
             "Environment variables:",
             "  TASKLIST_EVAL_REPORT_FORMAT  overrides --report-format",
             "  TASKLIST_EVAL_REPORT_FILE    overrides --report-file",
+            "  TASKLIST_EVAL_PLUGIN_DIRS    plugin folders to load "
+            "(os.pathsep-separated; replaces the default)",
             "",
             "Config precedence (later wins): tasklist-eval.yaml < env < CLI.",
         ]
@@ -184,6 +186,7 @@ def load_config(
     argv: list[str] | None = None,
     cwd: str | None = None,
     valid_evaluator_ids: list[str] | None = None,
+    evaluator_groups: dict[str, str] | None = None,
 ) -> EvalConfig:
     """Resolve and validate the full evaluation configuration.
 
@@ -196,6 +199,9 @@ def load_config(
     valid_evaluator_ids:
         Known evaluator ids; when provided, requested ids are validated against
         this set so unknown ids raise a descriptive :class:`ConfigError`.
+    evaluator_groups:
+        Optional ``id -> plugin group`` map; non-empty groups are shown next
+        to each id in the ``--help`` evaluator listing.
 
     Raises
     ------
@@ -255,7 +261,11 @@ def load_config(
     # --- Layer 4: CLI arguments ---
     evaluator_help = None
     if valid_evaluator_ids:
-        evaluator_help = "\n".join(f"  {eid}" for eid in valid_evaluator_ids)
+        groups = evaluator_groups or {}
+        evaluator_help = "\n".join(
+            f"  {eid}  ({groups[eid]})" if groups.get(eid) else f"  {eid}"
+            for eid in valid_evaluator_ids
+        )
     parser = _build_parser(
         valid_evaluator_ids=valid_evaluator_ids,
         evaluator_help=evaluator_help,

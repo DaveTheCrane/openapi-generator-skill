@@ -24,7 +24,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from tasklist_eval.config import load_config
-from tasklist_eval.exceptions import ConfigError, TasklistParseError
+from tasklist_eval.exceptions import ConfigError, PluginError, TasklistParseError
 from tasklist_eval.parser import parse_tasklist
 from tasklist_eval.registry import build_default_registry
 from tasklist_eval.reporter import report
@@ -33,10 +33,17 @@ from tasklist_eval.runner import run
 
 def main() -> None:
     """Load config, parse the tasklist, run evaluators, and exit with the code."""
-    registry = build_default_registry()
+    try:
+        registry = build_default_registry()
+    except PluginError as exc:
+        print(f"Plugin error: {exc}", file=sys.stderr)
+        sys.exit(2)
 
     try:
-        config = load_config(valid_evaluator_ids=registry.ids())
+        config = load_config(
+            valid_evaluator_ids=registry.ids(),
+            evaluator_groups=registry.groups(),
+        )
     except ConfigError as exc:
         print(f"Configuration error: {exc}", file=sys.stderr)
         sys.exit(2)
