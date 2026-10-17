@@ -1,0 +1,102 @@
+# Graded evaluator: what fraction of in-scope areas consumed generated code?
+#
+# The skill should produce, from the OpenAPI specs, three areas of code:
+#   * server         — the REST controllers / API delegate surface
+#   * address-client — the Address Service client
+#   * item-client    — the Item Service client
+#
+# For each area that is in scope the evaluator classifies it as GENERATED or
+# HANDCODED. Score = generated / (generated + handcoded); absent areas are
+# excluded.
+#
+# This is the YAML equivalent of generated_code_usage.py. Both files declare
+# the same evaluator id, so only ONE of them should be present at a time.
+# The Python file is retained alongside this one as a reference; to use only
+# the YAML version, delete or rename generated_code_usage.py.
+
+evaluators:
+  - id: generated-code-usage-yaml
+    kind: graded
+    description: >-
+      Graded fraction of in-scope areas (server/address-client/item-client)
+      that consume generated code rather than being hand-written.
+
+    success_label: generated
+    failure_label: handcoded
+    conflict_winner: success
+    unmatched_present: failure
+    pass_threshold: 0.999
+
+    areas:
+      - name: server
+        presence:
+          name: server-presence
+          patterns:
+            - 'controller|customersapi|/customers|delegate|customerservice'
+        success:
+          - name: generated
+            patterns:
+              - 'openapi-generator'
+              - 'generated[- ]sources'
+              - 'target/generated-sources'
+              - '\w*ApiDelegate\b'
+              - 'generated\b.*\binterface|interface\b.*\bgenerated'
+              - 'webclient\s+execution|webclient\)'
+              - 'delegate\b.*\bgenerated|generated\b.*\bdelegate'
+        failure:
+          - name: server-handcoded
+            patterns:
+              - '@RestController'
+              - 'create\s+.*controller'
+              - 'customercontroller'
+              - '@GetMapping|@PostMapping|@RequestMapping'
+              - 'implement\s+customerservice|create\s+.*customerservice'
+              - 'lombok'
+
+      - name: address-client
+        presence:
+          name: address-client-presence
+          patterns:
+            - 'address'
+        success:
+          - name: generated
+            patterns:
+              - 'openapi-generator'
+              - 'generated[- ]sources'
+              - 'target/generated-sources'
+              - '\w*ApiDelegate\b'
+              - 'generated\b.*\binterface|interface\b.*\bgenerated'
+              - 'webclient\s+execution|webclient\)'
+              - 'delegate\b.*\bgenerated|generated\b.*\bdelegate'
+        failure:
+          - name: client-handcoded
+            patterns:
+              - 'serviceclient\b.*@component|@component.*serviceclient'
+              - 'inject.*webclient|webclient via constructor|injected\s+webclient'
+              - 'mockwebserver'
+              - 'implement\s+\w*serviceclient'
+              - 'create\s+`?[\w.]*serviceclient'
+
+      - name: item-client
+        presence:
+          name: item-client-presence
+          patterns:
+            - '\bitem'
+        success:
+          - name: generated
+            patterns:
+              - 'openapi-generator'
+              - 'generated[- ]sources'
+              - 'target/generated-sources'
+              - '\w*ApiDelegate\b'
+              - 'generated\b.*\binterface|interface\b.*\bgenerated'
+              - 'webclient\s+execution|webclient\)'
+              - 'delegate\b.*\bgenerated|generated\b.*\bdelegate'
+        failure:
+          - name: client-handcoded
+            patterns:
+              - 'serviceclient\b.*@component|@component.*serviceclient'
+              - 'inject.*webclient|webclient via constructor|injected\s+webclient'
+              - 'mockwebserver'
+              - 'implement\s+\w*serviceclient'
+              - 'create\s+`?[\w.]*serviceclient'

@@ -105,17 +105,21 @@ test/tasklist-eval/
   tasklist_eval/            # framework
   evaluators/               # default plugin root
     openapi-generator/      # plugin group (hyphens allowed)
-      generator_in_pom.py
-      generated_code_usage.py
+      generator_in_pom.py            # Python evaluator
+      generator-in-pom.yaml          # equivalent YAML evaluator
+      generated_code_usage.py        # Python evaluator
+      generated-code-usage.yaml      # equivalent YAML evaluator
 ```
 
 At startup every immediate subfolder of the plugin root is scanned (sorted,
-skipping names starting with `.` or `_`), and every `*.py` file in it is
-imported (sorted, skipping names starting with `_`). Each module's
-`EVALUATORS = [...]` list is registered; modules without `EVALUATORS` are
-skipped, so they can hold shared helpers. Plugin folders are not packages, so
-use absolute imports (`from tasklist_eval.evaluators import BinaryEvaluator,
-GradedEvaluator, Area, PatternSet`).
+skipping names starting with `.` or `_`), and every `*.py` **and** `*.yaml` /
+`*.yml` file in it is loaded (sorted together by name, skipping names starting
+with `_`). Python modules expose evaluators via a module-level `EVALUATORS`
+list; YAML files declare them directly (see [YAML evaluator format](#yaml-evaluator-format)).
+Modules without `EVALUATORS` are skipped, so they can hold shared helpers.
+Plugin folders are not packages, so Python modules must use absolute imports
+(`from tasklist_eval.evaluators import BinaryEvaluator, GradedEvaluator, Area,
+PatternSet`).
 
 Each evaluator's `plugin_group` is its folder name. It appears as `group` in
 JSON results and as the JUnit testcase classname `tasklist-eval.<group>`, and
@@ -135,7 +139,8 @@ evaluator id prints `Plugin error: ...` to stderr and exits with code `2`.
 You can subclass `Evaluator` directly, but most checks are just "which regexes
 fire in which tasks". For those, `tasklist_eval.evaluators` provides generic,
 declarative building blocks, so a new evaluator is configuration rather than
-code.
+code. That configuration can be expressed either as Python code (as shown below)
+or as a YAML file (see [YAML evaluator format](#yaml-evaluator-format)).
 
 ### `PatternSet`
 
@@ -179,7 +184,7 @@ summary, and `details["areas"]`. Score = success / (success + failure);
 `score >= pass_threshold` (default `0.999`) is PASS, any other non-zero score
 is PARTIAL, and 0 (or no in-scope areas) is FAIL.
 
-### Example: a new evaluator
+### Example: a new evaluator (Python)
 
 A skill that should drive test-first development might add a plugin module
 `evaluators/my-skill/uses_tdd.py`:
@@ -201,6 +206,73 @@ EVALUATORS = [uses_tdd]
 It is discovered at the next run, listed in `--help` under group `my-skill`,
 and selectable via `--evaluators uses-tdd`. For programmatic use you can
 instead call `EvaluatorRegistry.register(uses_tdd)` on a registry directly.
+
+### YAML evaluator format
+
+The same evaluator can be declared as a YAML file in the plugin folder. YAML
+evaluators are discovered alongside Python ones — the loader picks up `*.yaml`
+and `*.yml` files together with `*.py` files, sorted alphabetically within each
+group directory.
+
+The top-level structure is a mapping with a required `evaluators` list and an
+optional `group` key (inferred from the folder name when absent):
+
+```yaml
+group: my-skill   # optional; defaults to folder name
+
+evaluators:
+  - id: uses-tdd
+    kind: binary    # "binary" or "graded"
+    description: "PASS iff the plan writes failing tests before the implementation."
+    require:
+      - name: red-green
+        patterns:
+          - 'red[- /]green'
+          - 'failing test first'
+    forbid:
+      - name: tests-skipped
+        patterns: ['skip (the )?tests']
+    summaries:
+      pass: "Plan follows red-green TDD."
+```
+
+For a **graded** evaluator:
+
+```yaml
+evaluators:
+  - id: my-graded-check
+    kind: graded
+    description: "Graded check description."
+    success_label: generated    # optional, default "success"
+    failure_label: handcoded    # optional, default "failure"
+    conflict_winner: success    # optional, "success" or "failure"
+    unmatched_present: failure  # optional, "success" or "failure"
+    pass_threshold: 0.999       # optional, default 0.999
+    areas:
+      - name: server
+        presence:
+          name: server-presence
+          patterns: ['controller|delegate']
+        success:
+          - name: generated
+            patterns: ['ApiDelegate', 'target/generated-sources']
+        failure:
+          - name: server-handcoded
+            patterns: ['@RestController']
+```
+
+**Pattern set flags** default to `IGNORECASE`. Override with a list of flag
+names: `flags: [MULTILINE, IGNORECASE]` or as a comma-separated string:
+`flags: "MULTILINE, IGNORECASE"`. Use `flags: []` for no flags (case-sensitive
+matching).
+
+A single YAML file can declare multiple evaluators in its `evaluators` list.
+Duplicate evaluator ids across YAML and Python files in the same plugin root
+are rejected with a descriptive error.
+
+The bundled YAML examples live alongside their Python equivalents in
+`evaluators/openapi-generator/` (see `generator-in-pom.yaml` and
+`generated-code-usage.yaml`).
 
 ### Built-in examples
 
@@ -320,7 +392,9 @@ markers, requirements, notes/dependency-graph present/absent/malformed, varied
 checkbox markers), both example evaluators against the expected oracle verdicts
 (including a synthetic partial-success tasklist), the generic `PatternSet`,
 `BinaryEvaluator`, and `GradedEvaluator` building blocks (including a
-non-openapi example evaluator), config precedence and
+non-openapi example evaluator), the YAML evaluator loader (happy-path, oracle
+verdicts, schema validation errors, multi-evaluator files, flag parsing, and
+duplicate-id detection across YAML and Python), config precedence and
 validation, the CLI help output (evaluator ids, examples, and environment
 sections), the runner's overall-verdict and threshold-gating logic, and the
 reporter in all three formats.

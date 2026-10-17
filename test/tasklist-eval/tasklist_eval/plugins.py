@@ -6,12 +6,15 @@ folders laid out as::
     <root>/
       <group>/            e.g. "openapi-generator" (hyphens allowed)
         some_module.py    exposes EVALUATORS = [SomeEvaluator(), ...]
+        some_eval.yaml    declarative evaluator (binary or graded)
 
 :func:`load_plugins` scans every immediate subdirectory of *root* (sorted,
-skipping names starting with ``.`` or ``_``), imports each ``*.py`` file in it
-(sorted, skipping names starting with ``_``) under a synthetic module name, and
-collects the module-level ``EVALUATORS`` list. A module without ``EVALUATORS``
-is skipped silently (it may be a shared helper). Each collected evaluator gets
+skipping names starting with ``.`` or ``_``), imports each ``*.py`` file and
+parses each ``*.yaml`` / ``*.yml`` file in it (files sorted together by name,
+skipping names starting with ``_``). Python modules expose evaluators via a
+module-level ``EVALUATORS`` list; YAML files declare them directly (see
+:mod:`tasklist_eval.yaml_loader`). A module without ``EVALUATORS`` is skipped
+silently (it may be a shared helper). Each collected evaluator gets
 ``plugin_group`` set to its folder name unless it already declares one.
 
 Plugin folders are not Python packages, so plugin modules must use absolute
@@ -30,6 +33,7 @@ from typing import Iterable
 
 from .evaluators.base import Evaluator
 from .exceptions import PluginError
+from .yaml_loader import load_yaml_evaluators
 
 # Synthetic top-level package that all plugin modules are registered under.
 PLUGIN_PACKAGE = "tasklist_eval_plugins"
@@ -132,13 +136,24 @@ def _evaluators_of(module: types.ModuleType, path: Path) -> list[Evaluator]:
 
 
 def _plugin_files(root: Path) -> Iterable[tuple[str, Path]]:
-    """Yield ``(group, file)`` pairs in deterministic (sorted) order."""
+    """Yield ``(group, file)`` pairs in deterministic (sorted) order.
+
+    Both ``*.py`` and ``*.yaml`` / ``*.yml`` files are included; they are
+    interleaved in alphabetical order within each group directory.
+    """
     for group_dir in sorted(root.iterdir(), key=lambda p: p.name):
         if not group_dir.is_dir() or group_dir.name.startswith((".", "_")):
             continue
-        for file in sorted(group_dir.glob("*.py"), key=lambda p: p.name):
-            if file.name.startswith("_") or not file.is_file():
-                continue
+        candidates = sorted(
+            (
+                f
+                for ext in ("*.py", "*.yaml", "*.yml")
+                for f in group_dir.glob(ext)
+                if f.is_file() and not f.name.startswith("_")
+            ),
+            key=lambda p: p.name,
+        )
+        for file in candidates:
             yield group_dir.name, file
 
 
@@ -150,8 +165,13 @@ def _load_into(root: str | Path, seen: dict[str, Path]) -> list[Evaluator]:
 
     loaded: list[Evaluator] = []
     for group, file in _plugin_files(root_path):
-        module = load_plugin_module(file)
-        for ev in _evaluators_of(module, file):
+        if file.suffix in (".yaml", ".yml"):
+            evaluators = _load_yaml_file(file, group)
+        else:
+            module = load_plugin_module(file)
+            evaluators = _evaluators_of(module, file)
+
+        for ev in evaluators:
             if ev.id in seen:
                 raise PluginError(
                     f"duplicate evaluator id {ev.id!r} defined in "
@@ -162,6 +182,15 @@ def _load_into(root: str | Path, seen: dict[str, Path]) -> list[Evaluator]:
                 ev.plugin_group = group
             loaded.append(ev)
     return loaded
+
+
+def _load_yaml_file(path: Path, group: str) -> list[Evaluator]:
+    """Load evaluators from a YAML file and set their group if not already set."""
+    evaluators = load_yaml_evaluators(path)
+    for ev in evaluators:
+        if not getattr(ev, "plugin_group", ""):
+            ev.plugin_group = group
+    return evaluators
 
 
 def load_plugins(root: str | Path) -> list[Evaluator]:

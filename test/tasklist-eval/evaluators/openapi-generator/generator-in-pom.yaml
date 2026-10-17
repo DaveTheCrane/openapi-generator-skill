@@ -1,0 +1,42 @@
+# Binary evaluator: did the tasklist add the OpenAPI generator to pom.xml?
+#
+# PASS iff BOTH conditions hold, else FAIL:
+#   1. There is evidence of a pom.xml / Maven build-config task, AND
+#   2. The generator is mentioned (openapi-generator-maven-plugin,
+#      openapi-generator / openapi generator, or org.openapitools).
+#
+# This is the YAML equivalent of generator_in_pom.py. Both files declare the
+# same evaluator id, so only ONE of them should be present in the plugin folder
+# at any time. The Python file is retained alongside this one as a reference;
+# to use only the YAML version, delete or rename generator_in_pom.py.
+
+evaluators:
+  - id: generator-in-pom-yaml
+    kind: binary
+    description: >-
+      PASS iff the tasklist both configures pom.xml/the Maven build and
+      mentions the OpenAPI generator plugin.
+
+    require:
+      - name: pom-modified
+        patterns:
+          - 'pom\.xml'
+          - 'maven\s+dependenc|maven\s+build|build[- ]helper|build\s+config|dependenc(?:y|ies)\s+to\s+pom'
+
+      - name: generator-mentioned
+        patterns:
+          - 'openapi-generator-maven-plugin'
+          - 'openapi[- ]?generator'
+          - 'org\.openapitools'
+
+    summaries:
+      pass: >-
+        pom.xml is modified to add the OpenAPI generator
+        (openapi-generator plugin detected).
+      missing:generator-mentioned: >-
+        pom.xml/build is modified but the OpenAPI generator is never
+        mentioned — code appears to be hand-written instead of generated.
+      missing:pom-modified: >-
+        The OpenAPI generator is mentioned but no pom.xml/build task was
+        found to register it.
+      missing:all: No pom.xml/build task and no OpenAPI generator mention found.
