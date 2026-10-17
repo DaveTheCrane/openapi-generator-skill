@@ -26,6 +26,8 @@ There's at least three levels to evaluating an Agent Skill (which handily spell 
 | [Planning](./test/tasklist-eval/README.md) | If my skill influences the organisation of my work, does it do so correctly? Does application of the skill result in a well-formed task list? Not all skills will apply here, but many will. For example, a skill encoding TDD, or git branching will impact task list structure, whereas a skill solely providing code formatting instructions or variable naming won't. | Medium - need to use the skill to generate tasklists, but this is typically much cheaper than generating all the code. |
 | Execution (TODO - no demo yet) | Does my skill shape the finished result correctly? I'm mostly thinking in the context of skills used in code generation, so this question would be a matter of code review, but it will apply in other areas too. Necessary to check that the skill doesn't plan out a perfect task list and then deviate, but also to check that it can actually use the tools it says it will. The openapi generator skill [initially fell over a lot](https://www.linkedin.com/pulse/cool-headed-ai-practice-openapi-generator-dave-crane-bmcqe/) failing to understand maven codegen lifecycle, until [some extra help](./steering/build-and-codegen.md) was provided.  | High - need to excute the task to completion before evaluating | 
 
+![diagram of APE framework](./ape-skills-eval-framework-overview.drawio.png)
+
 ### When to Execute
 
 Evals can be executed at different times
