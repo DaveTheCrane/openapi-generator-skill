@@ -1,6 +1,6 @@
 # Tasklist Evaluation Framework
 
-This framework evaluates a Kiro spec-driven `tasks.md` file to judge whether a
+This framework covers the **P** (planning) in the APE skills eval framework, and evaluates a generated task list (in this case, a Kiro spec-driven `tasks.md` file) to judge whether a
 *skill* was applied correctly — using only signals that are visible in the
 tasklist itself. Inspecting a tasklist is much cheaper than generating and
 compiling the full project, so this is a fast first-pass signal for any skill
@@ -11,7 +11,7 @@ testing and register them by id. The evaluators that ship here are built-in
 *examples* for the `springboot-openapi-generator` skill; they demonstrate the
 patterns you would follow for your own.
 
-Task completion state (the `- [ ]` / `- [x]` checkbox markers) is parsed and
+NB: In the kiro tasks spec, task completion state (the `- [ ]` / `- [x]` checkbox markers) is parsed and
 stored, but **deliberately ignored** when computing verdicts. Whether a task is
 ticked has no bearing on whether the skill chose the right approach.
 
@@ -31,7 +31,7 @@ PASS here as "the plan took the right shape," not "the build succeeds."
 
 A separate tool could later generate these tasklists from a skill plus curated
 prompts; for now the framework takes any `tasks.md` as input regardless of where
-it came from.
+it came from. As such, this can support either evals that run when the skill is updated, or eval experiments conducted on live captured data.
 
 ## Supported input formats
 

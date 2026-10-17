@@ -1,6 +1,6 @@
 # Skills Test Harness
 
-This harness tests only *whether* a skill is picked up (activated), not what it
+This harness tests only *whether* a skill is picked up (**A** for activated, in the APE framework), not what it
 does once it's created. In other words, it verifies activation behavior, not the
 correctness of any output the skill produces.
 
